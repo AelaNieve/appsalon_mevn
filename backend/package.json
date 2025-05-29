@@ -1,0 +1,18 @@
+{
+  "name": "appsalon_mevn_backend",
+  "version": "1.0.0",
+  "description": "Backend para AppSalon en MEVN",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "seed:import": "node data/seed.js --import",
+    "seed:delete": "node data/seed.js --delete"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
