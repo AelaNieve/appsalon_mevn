@@ -1,8 +1,16 @@
-<script>
+<script setup>
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+
+const menuOpen = ref(false)
+
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+}
 </script>
+
 <template>
-  <header class="bg-white">
+  <header class="bg-white relative">
     <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
       <a class="block text-teal-600 transition hover:text-cyan-600/75" href="#">
         <h1
@@ -67,19 +75,20 @@ import { RouterLink } from 'vue-router'
       </div>
     </div>
 
-    <nav v-if="menuOpen" aria-label="Mobile Global" class="md:hidden bg-white shadow-lg py-2">
-      <ul class="flex flex-col items-center gap-4 text-sm">
-        <li>
-          <p class="text-black">Hola: Usuario</p>
-        </li>
-        <li>
+    <nav
+      v-if="menuOpen"
+      aria-label="Mobile Global"
+      class="absolute top-16 right-4 w-auto bg-white shadow-lg py-2 rounded-md z-10"
+    >
+      <ul class="flex flex-col items-center gap-4 text-sm px-4 pb-2 w-40">
+        <li class="w-full">
           <button
             class="block w-full text-center rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75"
           >
             Mis Citas
           </button>
         </li>
-        <li>
+        <li class="w-full">
           <RouterLink
             :to="{ name: 'new-appointment' }"
             class="block w-full text-center rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75"
@@ -87,7 +96,7 @@ import { RouterLink } from 'vue-router'
             Nueva cita
           </RouterLink>
         </li>
-        <li>
+        <li class="w-full">
           <button
             type="button"
             class="block w-full text-center rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
