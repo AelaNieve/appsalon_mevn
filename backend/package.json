@@ -9,10 +9,12 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
+    "dev:postman": "node --watch index.js --postman",
     "seed:import": "node data/seed.js --import",
     "seed:delete": "node data/seed.js --delete"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^5.1.0"
   }
 }

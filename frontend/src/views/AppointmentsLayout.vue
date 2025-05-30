@@ -28,7 +28,7 @@ const toggleMenu = () => {
             </li>
             <li>
               <button
-                class="rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75"
+                class="rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75 cursor-pointer"
               >
                 Mis Citas
               </button>
@@ -44,7 +44,7 @@ const toggleMenu = () => {
             <li>
               <button
                 type="button"
-                class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
+                class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 cursor-pointer"
               >
                 Cerrar Sesión
               </button>
@@ -57,7 +57,7 @@ const toggleMenu = () => {
 
           <button
             @click="toggleMenu"
-            class="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75"
+            class="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 cursor-pointer"
           >
             <span class="sr-only">Toggle menu</span>
             <svg
@@ -83,7 +83,7 @@ const toggleMenu = () => {
       <ul class="flex flex-col items-center gap-4 text-sm px-4 pb-2 w-40">
         <li class="w-full">
           <button
-            class="block w-full text-center rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75"
+            class="cursor-pointer block w-full text-center rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75"
           >
             Mis Citas
           </button>
@@ -99,7 +99,7 @@ const toggleMenu = () => {
         <li class="w-full">
           <button
             type="button"
-            class="block w-full text-center rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
+            class="block w-full text-center rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 cursor-pointer"
           >
             Cerrar Sesión
           </button>
