@@ -99,7 +99,7 @@ const toggleMenu = () => {
         <li class="w-full">
           <button
             type="button"
-            class="block w-full text-center rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 cursor-pointer"
+            class="block w-full text-center rounded-md px-5 py-2.5 text-sm font-medium text-white transition bg-teal-600 hover:bg-teal-700 cursor-pointer"
           >
             Cerrar Sesión
           </button>

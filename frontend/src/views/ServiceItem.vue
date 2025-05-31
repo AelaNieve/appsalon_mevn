@@ -42,12 +42,23 @@ const serviceImage = computed(() => {
 </script>
 
 <template>
-  <div class="p-5 rounded-lg cursor-pointer bg-white flex items-center space-x-4">
+  <div class="p-5 rounded-lg bg-white flex items-center space-x-4">
     <img :src="serviceImage" :alt="service.name" class="w-16 h-16 object-contain flex-shrink-0" />
 
-    <div class="space-y-1">
-      <p class="text-2xl font-light text-gray-900">{{ service.name }}</p>
-      <p class="text-4xl font-black text-blue-600">{{ formatCurrency(service.price) }}</p>
+    <div class="flex flex-col justify-between h-full w-full">
+      <p class="text-lg font-bold text-gray-800 md:text-xl">{{ service.name }}</p>
+
+      <div class="flex justify-between items-end mt-2">
+        <p class="text-lg font-bold text-gray-700 md:text-xl">
+          {{ formatCurrency(service.price) }}
+        </p>
+
+        <button
+          class="px-2 py-1 text-xs font-bold text-white uppercase transition-colors duration-300 transform bg-teal-600 hover:bg-teal-700 cursor-pointer rounded focus:outline-none focus:bg-teal-700"
+        >
+          Agendar
+        </button>
+      </div>
     </div>
   </div>
 </template>
