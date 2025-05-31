@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { formatCurrency } from '../helpers'
+import { useAppointmentsStore } from '@/stores/appointments'
 
+const appointments = useAppointmentsStore()
 const props = defineProps({
   service: {
     type: Object,
@@ -54,7 +56,13 @@ const serviceImage = computed(() => {
         </p>
 
         <button
-          class="px-2 py-1 text-xs font-bold text-white uppercase transition-colors duration-300 transform bg-teal-600 hover:bg-teal-700 cursor-pointer rounded focus:outline-none focus:bg-teal-700"
+          class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none"
+          :class="
+            appointments.isServiceSelected(service._id)
+              ? 'bg-teal-400 text-teal-600'
+              : 'bg-teal-600 hover:bg-teal-700 focus:bg-teal-700 text-white'
+          "
+          @click="appointments.onServiceSelected(service)"
         >
           Agendar
         </button>

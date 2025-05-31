@@ -8,7 +8,7 @@ const store = userServicesStore()
     <div class="flex max-w-md overflow-hidden bg-white rounded-lg shadow-lg">
       <div class="p-4 md:p-4">
         <h1 class="text-center font-bold text-gray-800">
-          A continuación elige al menos un servicio para tu cita
+          Elige 1 servicio como minimo y 2 como maximo
         </h1>
       </div>
     </div>
