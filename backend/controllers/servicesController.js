@@ -29,7 +29,6 @@ const createService = async (req, res) => {
 const getServices = async (req, res) => {
   try {
     const services = await servicesModels.find();
-    console.log("Servicios mandados a la api");
     res.json(services);
   } catch (error) {
     console.log(error);

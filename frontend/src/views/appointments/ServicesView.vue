@@ -1,19 +1,41 @@
 <script setup>
 import ServiceItem from '../ServiceItem.vue'
+
+import CustomAlert from '../../components/CustomAlert.vue'
+
 import { userServicesStore } from '../../stores/services.js'
-const store = userServicesStore()
+
+import { useAppointmentsStore } from '../../stores/appointments.js'
+import { storeToRefs } from 'pinia'
+
+const servicesDisplayStore = userServicesStore()
+const appointmentsStore = useAppointmentsStore()
+
+const { showMaxServicesAlert } = storeToRefs(appointmentsStore)
+
+const handleCloseAlert = () => {
+  appointmentsStore.dismissMaxServicesAlert()
+}
 </script>
+
 <template>
+  <CustomAlert :visible="showMaxServicesAlert" @close="handleCloseAlert" />
+
   <div class="flex items-center justify-center">
     <div class="flex max-w-md overflow-hidden bg-white rounded-lg shadow-lg">
       <div class="p-4 md:p-4">
         <h1 class="text-center font-bold text-gray-800">
-          Elige 1 servicio como minimo y 2 como maximo
+          Agradecemos su preferencia. Por favor, seleccione su servicio.
         </h1>
       </div>
     </div>
   </div>
+
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 m-5">
-    <ServiceItem v-for="service in store.services" :key="service._id" :service="service" />
+    <ServiceItem
+      v-for="service in servicesDisplayStore.services"
+      :key="service._id"
+      :service="service"
+    />
   </div>
 </template>

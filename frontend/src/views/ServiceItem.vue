@@ -44,7 +44,10 @@ const serviceImage = computed(() => {
 </script>
 
 <template>
-  <div class="p-5 rounded-lg bg-white flex items-center space-x-4">
+  <div
+    class="p-5 rounded-lg flex items-center space-x-4 transition-colors duration-300"
+    :class="appointments.isServiceSelected(service._id) ? 'bg-teal-100' : 'bg-white'"
+  >
     <img :src="serviceImage" :alt="service.name" class="w-16 h-16 object-contain flex-shrink-0" />
 
     <div class="flex flex-col justify-between h-full w-full">
@@ -59,12 +62,12 @@ const serviceImage = computed(() => {
           class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none"
           :class="
             appointments.isServiceSelected(service._id)
-              ? 'bg-teal-400 text-teal-600'
+              ? 'bg-teal-400 text-teal-800'
               : 'bg-teal-600 hover:bg-teal-700 focus:bg-teal-700 text-white'
           "
           @click="appointments.onServiceSelected(service)"
         >
-          Agendar
+          {{ appointments.isServiceSelected(service._id) ? 'Selecionado' : 'Agendar' }}
         </button>
       </div>
     </div>

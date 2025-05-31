@@ -3,21 +3,43 @@ import { ref, computed } from 'vue'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   const services = ref([])
+  const showMaxServicesAlert = ref(false)
 
   function onServiceSelected(service) {
     if (services.value.some((selectedService) => selectedService._id == service._id)) {
-      console.log('Este servicio ya esta en la cita')
+      services.value = services.value.filter(
+        (selectedService) => selectedService._id != service._id,
+      )
     } else {
+      if (services.value.length >= 2) {
+        showMaxServicesAlert.value = true
+        setTimeout(() => {
+          if (showMaxServicesAlert.value) {
+            dismissMaxServicesAlert()
+          }
+        }, 4000)
+        return
+      }
       services.value.push(service)
     }
+  }
+
+  function dismissMaxServicesAlert() {
+    showMaxServicesAlert.value = false
   }
 
   const isServiceSelected = computed(() => {
     return (id) => services.value.some((selectedService) => selectedService._id === id)
   })
 
+  const selectedServicesCount = computed(() => services.value.length)
+
   return {
+    services,
     onServiceSelected,
     isServiceSelected,
+    showMaxServicesAlert,
+    dismissMaxServicesAlert,
+    selectedServicesCount,
   }
 })
