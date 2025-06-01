@@ -59,11 +59,11 @@ const serviceImage = computed(() => {
         </p>
 
         <button
-          class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none"
+          class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none text-white"
           :class="
             appointments.isServiceSelected(service._id)
-              ? 'bg-deep-plum text-white'
-              : 'bg-muted-grape hover:bg-deep-plum focus:bg-deep-plum text-white'
+              ? 'bg-deep-plum hover:bg-muted-grape'
+              : 'bg-muted-grape hover:bg-deep-plum'
           "
           @click="appointments.onServiceSelected(service)"
         >

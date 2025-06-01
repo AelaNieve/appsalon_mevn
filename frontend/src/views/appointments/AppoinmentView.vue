@@ -16,8 +16,8 @@ const appointments = useAppointmentsStore()
     </div>
   </div>
 
-  <section class="bg-deep-plum/80 mb-5">
-    <div class="container px-6 lg:py-10 py-0.5 mx-auto">
+  <section class="bg-deep-plum/80">
+    <div class="container px-6 mx-auto py-1 lg:pt-6">
       <div class="lg:-mx-6 lg:flex lg:items-left">
         <div class="mt-6 lg:w-1/2 lg:mt-0 lg:mx-6">
           <h1
