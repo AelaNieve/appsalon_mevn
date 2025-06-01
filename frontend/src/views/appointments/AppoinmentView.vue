@@ -6,49 +6,51 @@ import { useAppointmentsStore } from '@/stores/appointments'
 const appointments = useAppointmentsStore()
 </script>
 <template>
-  <div class="flex items-center justify-center mb-5">
-    <div class="flex max-w-md overflow-hidden bg-muted-grape rounded-lg shadow-lg">
-      <div class="p-4 md:p-4">
-        <h1 class="text-center font-bold text-dark-indigo">
-          A continuación verifica la información y confirma tu cita
-        </h1>
+  <div class="flex items-center justify-center my-10">
+    <div
+      class="w-full max-w-3xl bg-gradient-to-br from-pastel-lilac via-muted-grape to-deep-plum rounded-2xl shadow-2xl p-8"
+    >
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <!-- Imagen decorativa -->
+        <img
+          class="object-cover w-40 h-40 rounded-full border-4 border-white shadow-lg mb-6 md:mb-0"
+          src="/background.jpg"
+          alt="Decoración"
+        />
+        <div class="flex-1">
+          <h2 class="text-3xl font-extrabold text-white mb-2 text-center md:text-left">
+            <span class="inline-block align-middle mr-2">🗓️</span>
+            Confirma tu cita
+          </h2>
+          <p class="text-lg text-white/90 mb-6 text-center md:text-left">
+            Revisa los servicios seleccionados y confirma tu cita. ¡Gracias por confiar en nosotros!
+          </p>
+          <div
+            v-if="appointments.noServicesSelected"
+            class="bg-white/80 rounded-lg p-4 text-center text-deep-plum font-semibold text-xl"
+          >
+            No hay servicios seleccionados
+          </div>
+          <div v-else>
+            <div class="space-y-4">
+              <SelectedService
+                v-for="service in appointments.services"
+                :key="service._id"
+                :service="service"
+                class="bg-white/90 rounded-lg shadow p-4"
+              />
+            </div>
+            <div class="flex justify-end mt-6">
+              <div class="bg-deep-plum text-white rounded-lg px-6 py-3 text-xl font-bold shadow-lg">
+                Total a pagar:
+                <span class="font-black text-2xl ml-2">{{
+                  formatCurrency(appointments.totalAmount)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  <section class="bg-deep-plum/80">
-    <div class="container px-6 mx-auto py-1 lg:pt-6">
-      <p v-if="appointments.noServicesSelected" class="text-white text-2xl">
-        No hay servicios selecionados
-      </p>
-      <div v-else class="lg:-mx-6 lg:flex lg:items-left">
-        <div class="mt-6 lg:w-1/2 lg:mt-0 lg:mx-6">
-          <h1
-            class="border border-muted-grape bg-pastel-lilac rounded-lg p-5 text-2xl font-bold text-deep-plum capitalize lg:text-3xl mb-5"
-          >
-            Servicios seleccionados
-          </h1>
-
-          <div class="grid gap-5">
-            <SelectedService
-              v-for="service in appointments.services"
-              :key="service._id"
-              :service="service"
-            />
-            <p
-              class="ml-auto border border-muted-grape bg-light-mauve rounded-lg text-right text-dark-indigo text-2xl mb-4 px-2 py-1"
-            >
-              Total a pagar:
-              <span class="font-black"> {{ formatCurrency(appointments.totalAmount) }}</span>
-            </p>
-          </div>
-        </div>
-        <img
-          class="object-cover w-full lg:mx-6 lg:w-1/2 rounded-xl h-72 lg:h-96 mb-6 opacity-80"
-          src="/background.jpg"
-          alt=""
-        />
-      </div>
-    </div>
-  </section>
 </template>
