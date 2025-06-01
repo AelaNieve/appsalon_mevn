@@ -15,9 +15,10 @@ defineProps({
       <p class="text-lg font-bold text-gray-800 md:text-xl">{{ service.name }}</p>
       <p class="text-lg font-bold text-gray-700 md:text-xl">{{ formatCurrency(service.price) }}</p>
     </div>
+
     <button
       type="button"
-      class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 cursor-pointer"
+      class="max-w-md block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 cursor-pointer"
       @click="appointments.onServiceSelected(service)"
     >
       Eliminar

@@ -20,7 +20,9 @@ const appointments = useAppointmentsStore()
     <div class="container px-6 lg:py-10 py-0.5 mx-auto">
       <div class="lg:-mx-6 lg:flex lg:items-left">
         <div class="mt-6 lg:w-1/2 lg:mt-0 lg:mx-6">
-          <h1 class="text-2xl font-bold text-gray-800 capitalize lg:text-3xl mb-5">
+          <h1
+            class="border border-gray-600 bg-white rounded-lg p-5 text-2xl font-bold text-gray-800 capitalize lg:text-3xl mb-5"
+          >
             Servicios seleccionados
           </h1>
 
@@ -30,14 +32,16 @@ const appointments = useAppointmentsStore()
               :key="service._id"
               :service="service"
             />
-            <p class="text-right text-white text-2xl mb-4">
+            <p
+              class="ml-auto border border-gray-600 bg-white rounded-lg text-right text-gray-800 text-2xl mb-4 px-2 py-1"
+            >
               Total a pagar:
               <span class="font-black"> {{ formatCurrency(appointments.totalAmount) }}</span>
             </p>
           </div>
         </div>
         <img
-          class="object-cover w-full lg:mx-6 lg:w-1/2 rounded-xl h-72 lg:h-96 mb-6"
+          class="object-cover w-full lg:mx-6 lg:w-1/2 rounded-xl h-72 lg:h-96 mb-6 opacity-80"
           src="/background.jpg"
           alt=""
         />
