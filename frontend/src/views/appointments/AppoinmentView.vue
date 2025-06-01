@@ -18,7 +18,10 @@ const appointments = useAppointmentsStore()
 
   <section class="bg-deep-plum/80">
     <div class="container px-6 mx-auto py-1 lg:pt-6">
-      <div class="lg:-mx-6 lg:flex lg:items-left">
+      <p v-if="appointments.noServicesSelected" class="text-white text-2xl">
+        No hay servicios selecionados
+      </p>
+      <div v-else class="lg:-mx-6 lg:flex lg:items-left">
         <div class="mt-6 lg:w-1/2 lg:mt-0 lg:mx-6">
           <h1
             class="border border-muted-grape bg-pastel-lilac rounded-lg p-5 text-2xl font-bold text-deep-plum capitalize lg:text-3xl mb-5"

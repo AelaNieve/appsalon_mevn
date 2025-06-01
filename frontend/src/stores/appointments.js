@@ -1,3 +1,4 @@
+// frontend\src\stores\appointments.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
@@ -34,6 +35,9 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
   const selectedServicesCount = computed(() => services.value.length)
 
+  // Corrected line:
+  const noServicesSelected = computed(() => services.value.length === 0)
+
   const totalAmount = computed(() => {
     return services.value.reduce((total, service) => total + service.price, 0)
   })
@@ -43,6 +47,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     services,
     onServiceSelected,
     isServiceSelected,
+    noServicesSelected,
     showMaxServicesAlert,
     dismissMaxServicesAlert,
     selectedServicesCount,
