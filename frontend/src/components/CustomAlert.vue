@@ -20,11 +20,11 @@ defineEmits(['close'])
   >
     <div
       v-if="visible"
-      class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex w-full max-w-sm overflow-hidden bg-white rounded-lg shadow-md"
+      class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex w-full max-w-sm overflow-hidden bg-light-mauve rounded-lg shadow-md"
     >
-      <div class="flex items-center justify-center w-12 bg-yellow-500">
+      <div class="flex items-center justify-center w-12 bg-pastel-lilac">
         <svg
-          class="w-6 h-6 text-white fill-current"
+          class="w-6 h-6 text-deep-plum fill-current"
           viewBox="0 0 40 40"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -36,13 +36,13 @@ defineEmits(['close'])
 
       <div class="px-4 py-2 -mx-3">
         <div class="mx-3">
-          <span class="font-semibold text-yellow-500">Advertencia</span>
-          <p class="text-sm text-gray-600">Solo se puede seleccionar 2 servicios por cita.</p>
+          <span class="font-semibold text-deep-plum">Advertencia</span>
+          <p class="text-sm text-dark-indigo">Solo se puede seleccionar 2 servicios por cita.</p>
         </div>
       </div>
       <button
         @click="$emit('close')"
-        class="absolute top-1 right-1 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+        class="absolute top-1 right-1 p-1 text-muted-grape hover:text-deep-plum focus:outline-none"
       >
         <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path

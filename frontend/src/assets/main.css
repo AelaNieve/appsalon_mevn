@@ -1,4 +1,13 @@
+/* frontend/src/assets/main.css */
 @import 'tailwindcss';
+
+@theme {
+  --color-light-mauve: #c5a2cb;
+  --color-pastel-lilac: #e0bfe4;
+  --color-deep-plum: #5b3c62;
+  --color-muted-grape: #92608a;
+  --color-dark-indigo: #110721;
+}
 
 .app-background {
   background-image: url('/background.jpg'); /* Relative to your public folder */

@@ -7,21 +7,21 @@ const appointments = useAppointmentsStore()
 </script>
 <template>
   <div class="flex items-center justify-center mb-5">
-    <div class="flex max-w-md overflow-hidden bg-white rounded-lg shadow-lg">
+    <div class="flex max-w-md overflow-hidden bg-muted-grape rounded-lg shadow-lg">
       <div class="p-4 md:p-4">
-        <h1 class="text-center font-bold text-gray-800">
+        <h1 class="text-center font-bold text-dark-indigo">
           A continuación verifica la información y confirma tu cita
         </h1>
       </div>
     </div>
   </div>
 
-  <section class="bg-teal-600/20 mb-5">
+  <section class="bg-deep-plum/80 mb-5">
     <div class="container px-6 lg:py-10 py-0.5 mx-auto">
       <div class="lg:-mx-6 lg:flex lg:items-left">
         <div class="mt-6 lg:w-1/2 lg:mt-0 lg:mx-6">
           <h1
-            class="border border-gray-600 bg-white rounded-lg p-5 text-2xl font-bold text-gray-800 capitalize lg:text-3xl mb-5"
+            class="border border-muted-grape bg-pastel-lilac rounded-lg p-5 text-2xl font-bold text-deep-plum capitalize lg:text-3xl mb-5"
           >
             Servicios seleccionados
           </h1>
@@ -33,7 +33,7 @@ const appointments = useAppointmentsStore()
               :service="service"
             />
             <p
-              class="ml-auto border border-gray-600 bg-white rounded-lg text-right text-gray-800 text-2xl mb-4 px-2 py-1"
+              class="ml-auto border border-muted-grape bg-light-mauve rounded-lg text-right text-dark-indigo text-2xl mb-4 px-2 py-1"
             >
               Total a pagar:
               <span class="font-black"> {{ formatCurrency(appointments.totalAmount) }}</span>

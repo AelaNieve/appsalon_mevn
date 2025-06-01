@@ -46,7 +46,7 @@ const serviceImage = computed(() => {
 <template>
   <div
     class="p-5 rounded-lg flex items-center space-x-4 transition-colors duration-300"
-    :class="appointments.isServiceSelected(service._id) ? 'bg-teal-100' : 'bg-white'"
+    :class="appointments.isServiceSelected(service._id) ? 'bg-pastel-lilac ' : 'bg-light-mauve'"
   >
     <img :src="serviceImage" :alt="service.name" class="w-16 h-16 object-contain flex-shrink-0" />
 
@@ -62,8 +62,8 @@ const serviceImage = computed(() => {
           class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none"
           :class="
             appointments.isServiceSelected(service._id)
-              ? 'bg-teal-400 text-teal-800'
-              : 'bg-teal-600 hover:bg-teal-700 focus:bg-teal-700 text-white'
+              ? 'bg-deep-plum text-white'
+              : 'bg-muted-grape hover:bg-deep-plum focus:bg-deep-plum text-white'
           "
           @click="appointments.onServiceSelected(service)"
         >
