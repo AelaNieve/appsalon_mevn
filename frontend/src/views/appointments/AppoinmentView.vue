@@ -1,10 +1,29 @@
-<!-- frontend\src\views\appointments\AppoinmentView.vue -->
 <script setup>
 import SelectedService from '@/components/SelectedService.vue'
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
+import { ref, computed } from 'vue' // Import ref and computed
 
 const appointments = useAppointmentsStore()
+
+// Get today's date in 'YYYY-MM-DD' format for the min attribute
+const today = computed(() => {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const day = d.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
+
+// Calculate the date two months from today for the max attribute
+const maxDate = computed(() => {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 2) // Add two months
+  const year = d.getFullYear()
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const day = d.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
 </script>
 
 <template>
@@ -13,7 +32,6 @@ const appointments = useAppointmentsStore()
       class="w-full max-w-3xl bg-gradient-to-br from-pastel-lilac via-muted-grape to-deep-plum rounded-2xl shadow-2xl p-8"
     >
       <div class="flex flex-col md:flex-row items-center gap-8">
-        <!-- Imagen decorativa -->
         <img
           class="object-cover w-40 h-40 rounded-full border-4 border-white shadow-lg mb-6 md:mb-0"
           src="/background.jpg"
@@ -55,7 +73,6 @@ const appointments = useAppointmentsStore()
             <h1 class="text-4xl font-bold text-center my-6 text-deep-plum">
               Selecciona una fecha para tu cita
             </h1>
-            <!-- Fecha de la cita -->
             <div class="mb-6">
               <label for="appointment-date" class="block text-white font-semibold mb-2">
                 Selecciona una fecha:
@@ -63,7 +80,9 @@ const appointments = useAppointmentsStore()
               <input
                 id="appointment-date"
                 type="date"
-                v-model="appointments.selectedDate"
+                :min="today"
+                :max="maxDate"
+                v-model="appointments.date"
                 class="w-full md:w-1/2 p-3 rounded-lg shadow text-deep-plum font-semibold"
               />
             </div>
@@ -81,7 +100,7 @@ const appointments = useAppointmentsStore()
           </div>
         </div>
       </div>
-      <div>
+      <div v-if="appointments.isValidReservation">
         <button class="cursor-pointer w-full md:w-auto bg-blue-500 p-3 rounded-lg">
           Confirmar reservación
         </button>
