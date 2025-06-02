@@ -22,9 +22,11 @@ const handleCloseAlert = () => {
   <CustomAlert :visible="showMaxServicesAlert" @close="handleCloseAlert" />
 
   <div class="flex items-center justify-center mb-5">
-    <div class="flex max-w-md overflow-hidden bg-muted-grape rounded-lg shadow-lg">
-      <div class="p-4 md:p-4">
-        <h1 class="text-center font-bold text-dark-indigo">
+    <div 
+      class="flex max-w-md overflow-hidden rounded-xl shadow-lg border border-gray-200 bg-gradient-to-r from-white via-pastel-lilac to-light-mauve transition-transform duration-300 hover:scale-105"
+    >
+      <div class="p-6">
+      <h1 class="text-center text-xl font-bold text-deep-plum">
           Agradecemos su preferencia. Por favor, seleccione su servicio.
         </h1>
       </div>

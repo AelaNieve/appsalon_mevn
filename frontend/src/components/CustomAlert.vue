@@ -20,11 +20,11 @@ defineEmits(['close'])
   >
     <div
       v-if="visible"
-      class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex w-full max-w-sm overflow-hidden bg-light-mauve rounded-lg shadow-md"
+      class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex w-full max-w-md overflow-hidden bg-light-mauve rounded-xl shadow-2xl border border-pastel-lilac ring-2 ring-pastel-lilac/30"
     >
-      <div class="flex items-center justify-center w-12 bg-pastel-lilac">
+      <div class="flex items-center justify-center w-16 bg-pastel-lilac rounded-l-xl">
         <svg
-          class="w-6 h-6 text-deep-plum fill-current"
+          class="w-8 h-8 text-deep-plum fill-current animate-bounce-slow"
           viewBox="0 0 40 40"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -34,22 +34,40 @@ defineEmits(['close'])
         </svg>
       </div>
 
-      <div class="px-4 py-2 -mx-3">
-        <div class="mx-3">
-          <span class="font-semibold text-deep-plum">Advertencia</span>
-          <p class="text-sm text-dark-indigo">Solo se puede seleccionar 2 servicios por cita.</p>
+      <div class="flex-1 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-lg text-deep-plum tracking-wide flex items-center gap-2">
+            <svg class="w-5 h-5 text-deep-plum" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Advertencia
+          </span>
+          <button
+            @click="$emit('close')"
+            class="ml-4 p-2 rounded-full hover:bg-pastel-lilac/60 focus:outline-none focus:ring-2 focus:ring-deep-plum transition"
+            aria-label="Cerrar"
+          >
+            <svg class="w-4 h-4 text-muted-grape hover:text-deep-plum transition" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M10 8.586L14.293 4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586z"
+              />
+            </svg>
+          </button>
         </div>
+        <p class="mt-2 text-base text-dark-indigo leading-relaxed">
+          Solo se puede seleccionar <span class="font-semibold text-deep-plum">2 servicios</span> por cita.
+        </p>
       </div>
-      <button
-        @click="$emit('close')"
-        class="absolute top-1 right-1 p-1 text-muted-grape hover:text-deep-plum focus:outline-none"
-      >
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M10 8.586L14.293 4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586z"
-          />
-        </svg>
-      </button>
     </div>
   </transition>
 </template>
+
+<style scoped>
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0);}
+  50% { transform: translateY(-6px);}
+}
+.animate-bounce-slow {
+  animation: bounce-slow 1.8s infinite;
+}
+</style>

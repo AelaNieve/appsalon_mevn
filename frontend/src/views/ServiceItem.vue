@@ -45,29 +45,33 @@ const serviceImage = computed(() => {
 
 <template>
   <div
-    class="p-5 rounded-lg flex items-center space-x-4 transition-colors duration-300"
-    :class="appointments.isServiceSelected(service._id) ? 'bg-pastel-lilac ' : 'bg-light-mauve'"
+    class="p-6 rounded-xl flex items-center gap-6 shadow-lg border border-gray-200 bg-gradient-to-r from-white via-pastel-lilac to-light-mauve transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+    :class="appointments.isServiceSelected(service._id) ? 'ring-2 ring-deep-plum' : ''"
   >
-    <img :src="serviceImage" :alt="service.name" class="w-16 h-16 object-contain flex-shrink-0" />
+    <img
+      :src="serviceImage"
+      :alt="service.name"
+      class="w-20 h-20 object-contain rounded-full border-2 border-muted-grape shadow transition-transform duration-300 hover:scale-110"
+    />
 
     <div class="flex flex-col justify-between h-full w-full">
-      <p class="text-lg font-bold text-gray-800 md:text-xl">{{ service.name }}</p>
+      <p class="text-xl font-semibold text-deep-plum mb-1">{{ service.name }}</p>
 
       <div class="flex justify-between items-end mt-2">
-        <p class="text-lg font-bold text-gray-700 md:text-xl">
+        <p class="text-lg font-bold text-muted-grape">
           {{ formatCurrency(service.price) }}
         </p>
 
         <button
-          class="px-2 py-1 text-xs font-bold uppercase transition-colors duration-300 transform cursor-pointer rounded focus:outline-none text-white"
+          class="px-4 py-2 text-xs font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105"
           :class="
             appointments.isServiceSelected(service._id)
-              ? 'bg-deep-plum hover:bg-muted-grape'
-              : 'bg-muted-grape hover:bg-deep-plum'
+              ? 'bg-deep-plum text-white hover:bg-muted-grape'
+              : 'bg-muted-grape text-white hover:bg-deep-plum'
           "
           @click="appointments.onServiceSelected(service)"
         >
-          {{ appointments.isServiceSelected(service._id) ? 'Selecionado' : 'Agendar' }}
+          {{ appointments.isServiceSelected(service._id) ? 'Seleccionado' : 'Agendar' }}
         </button>
       </div>
     </div>

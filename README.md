@@ -1,1 +1,1 @@
-# app-salon
+# SalonPrivett
