@@ -4,6 +4,11 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  // Add a new prop for the message
+  message: {
+    type: String,
+    default: 'Solo se puede seleccionar 2 servicios por cita.', // Keep the original default
+  },
 })
 
 defineEmits(['close'])
@@ -37,8 +42,18 @@ defineEmits(['close'])
       <div class="flex-1 px-6 py-4">
         <div class="flex items-center justify-between">
           <span class="font-bold text-lg text-deep-plum tracking-wide flex items-center gap-2">
-            <svg class="w-5 h-5 text-deep-plum" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <svg
+              class="w-5 h-5 text-deep-plum"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Advertencia
           </span>
@@ -47,7 +62,11 @@ defineEmits(['close'])
             class="ml-4 p-2 rounded-full hover:bg-pastel-lilac/60 focus:outline-none focus:ring-2 focus:ring-deep-plum transition"
             aria-label="Cerrar"
           >
-            <svg class="w-4 h-4 text-muted-grape hover:text-deep-plum transition" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              class="w-4 h-4 text-muted-grape hover:text-deep-plum transition"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M10 8.586L14.293 4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586z"
               />
@@ -55,7 +74,7 @@ defineEmits(['close'])
           </button>
         </div>
         <p class="mt-2 text-base text-dark-indigo leading-relaxed">
-          Solo se puede seleccionar <span class="font-semibold text-deep-plum">2 servicios</span> por cita.
+          {{ message }}
         </p>
       </div>
     </div>
@@ -64,8 +83,13 @@ defineEmits(['close'])
 
 <style scoped>
 @keyframes bounce-slow {
-  0%, 100% { transform: translateY(0);}
-  50% { transform: translateY(-6px);}
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 .animate-bounce-slow {
   animation: bounce-slow 1.8s infinite;

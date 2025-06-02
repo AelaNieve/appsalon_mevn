@@ -1,10 +1,13 @@
 <script setup>
 import SelectedService from '@/components/SelectedService.vue'
+import CustomAlert from '@/components/CustomAlert.vue' // Import CustomAlert
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { ref, computed } from 'vue' // Import ref and computed
+import { storeToRefs } from 'pinia' // Import storeToRefs
 
 const appointments = useAppointmentsStore()
+const { showWeekendAlert } = storeToRefs(appointments) // Destructure showWeekendAlert
 
 // Get today's date in 'YYYY-MM-DD' format for the min attribute
 const today = computed(() => {
@@ -24,6 +27,10 @@ const maxDate = computed(() => {
   const day = d.getDate().toString().padStart(2, '0')
   return `${year}-${month}-${day}`
 })
+
+const handleDismissWeekendAlert = () => {
+  appointments.dismissWeekendAlert()
+}
 </script>
 
 <template>
@@ -107,4 +114,9 @@ const maxDate = computed(() => {
       </div>
     </div>
   </div>
+  <CustomAlert
+    :visible="showWeekendAlert"
+    @close="handleDismissWeekendAlert"
+    message="🗓️ Lo sentimos, no se pueden seleccionar Sábados ni Domingos. Por favor, elige otro día. 🙏"
+  />
 </template>

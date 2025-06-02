@@ -4,6 +4,7 @@ import { ref, computed, onMounted, watch } from 'vue' // Import watch
 export const useAppointmentsStore = defineStore('appointments', () => {
   const services = ref([])
   const showMaxServicesAlert = ref(false)
+  const showWeekendAlert = ref(false) // New ref for weekend alert
 
   const date = ref('') // Date for the appointment
   const hours = ref([]) // Available hours
@@ -30,6 +31,11 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
   function dismissMaxServicesAlert() {
     showMaxServicesAlert.value = false
+  }
+
+  // New function to dismiss the weekend alert
+  function dismissWeekendAlert() {
+    showWeekendAlert.value = false
   }
 
   const isServiceSelected = computed(() => {
@@ -67,9 +73,12 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         // Check if it's a Sunday or Saturday
-        alert(
-          '🗓️ Lo sentimos, no se pueden seleccionar Sábados ni Domingos. Por favor, elige otro día. 🙏',
-        )
+        showWeekendAlert.value = true // Set the ref to true to show the custom alert
+        setTimeout(() => {
+          if (showWeekendAlert.value) {
+            dismissWeekendAlert()
+          }
+        }, 4000)
         date.value = '' // Reset the date
         // Optionally, if a time was selected based on this date, you might want to reset it too:
         // time.value = '';
@@ -95,6 +104,8 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     noServicesSelected,
     showMaxServicesAlert,
     dismissMaxServicesAlert,
+    showWeekendAlert, // Expose the new ref
+    dismissWeekendAlert, // Expose the new function
     selectedServicesCount,
     date,
     hours,
