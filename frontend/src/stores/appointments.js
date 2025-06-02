@@ -1,6 +1,6 @@
 // frontend\src\stores\appointments.js
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   const services = ref([])
@@ -42,6 +42,18 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     return services.value.reduce((total, service) => total + service.price, 0)
   })
 
+  const selectedDate = ref('')
+  const hours = ref([])
+  const time = ref('')
+
+  onMounted(() => {
+    const startHour = 10
+    const endHour = 19
+    for (let hour = startHour; hour <= endHour; hour++) {
+      hours.value.push(hour + ':00')
+    }
+  })
+
   return {
     totalAmount,
     services,
@@ -51,5 +63,8 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     showMaxServicesAlert,
     dismissMaxServicesAlert,
     selectedServicesCount,
+    selectedDate,
+    hours,
+    time,
   }
 })
