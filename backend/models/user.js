@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { uniqueId } from "../helpers/errorHandeling";
+import { uniqueId } from "../helpers/errorHandeling.js"; // Assuming this is for token generation
 
 const userSchema = mongoose.Schema({
   name: {
@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema({
   password: {
     type: String,
     required: true,
-    trim: true,
+    trim: true, // Still good to trim any accidental whitespace
   },
   email: {
     type: String,
@@ -20,7 +20,7 @@ const userSchema = mongoose.Schema({
   },
   token: {
     type: String,
-    default: () => uniqueId,
+    default: () => uniqueId(), // Assuming uniqueId is a function that generates a unique ID
   },
   verified: {
     type: Boolean,
