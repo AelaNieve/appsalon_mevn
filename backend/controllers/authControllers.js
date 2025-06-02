@@ -201,4 +201,39 @@ const verifyAccount = async (req, res) => {
     console.log(error);
   }
 };
-export { register, verifyAccount };
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  // 1. Check if the user exists
+  const user = await User.findOne({ email });
+  if (!user) {
+    const error = new Error("Alguien se invento un usuario");
+    return res.status(401).json({ msg: error.message });
+  }
+
+  // 2. Check if the account is verified
+  if (!user.verified) {
+    const error = new Error(
+      "Te dije que confirmaras la cuenta de email mierda"
+    );
+    return res.status(401).json({ msg: error.message });
+  }
+
+  // 3. Verify the password
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordCorrect) {
+    const error = new Error(
+      "Contraseña incorrecta, ¿No estaras intentando entrar a una cuenta que no es tuya?."
+    );
+    return res.status(401).json({ msg: error.message });
+  }
+
+  // If email, verification, and password are correct, you can proceed with login success
+  return res
+    .status(200)
+    .json({ msg: "Inicio de sesión exitoso, Que alegria verte en App Salon" });
+};
+
+export { register, verifyAccount, login };
