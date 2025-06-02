@@ -1,137 +1,183 @@
+import colors from "colors";
 import servicesModels from "../models/servicesModels.js";
 import {
   validateObjectId,
-  validateServiceId,
   handleNotFoundError,
 } from "../helpers/errorHandeling.js";
+import mongoose from "mongoose";
+
+// Aquí revisamos si el ID es de verdad y si el servicio existe.
+const findServiceByIdMiddleware = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return handleNotFoundError(
+      "El ID proporcionado no es válido. ¿Estás inventando cosas?",
+      res,
+      400
+    );
+  }
+
+  try {
+    const service = await servicesModels.findById(id);
+    if (!service) {
+      return handleNotFoundError(
+        `El servicio con ID '${id}' no fue encontrado. ¿Quizas alguien quito este servicio?`,
+        res,
+        404
+      );
+    }
+    req.service = service;
+    next();
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        `☠️  Error buscando servicio por ID (${id}): ${error.message}`
+      )
+    );
+    return res
+      .status(500)
+      .json({ msg: "Error interno del servidor al buscar el servicio." });
+  }
+};
 
 const createService = async (req, res) => {
-  if (Object.values(req.body).includes("")) {
-    const error = new Error("falta data we");
+  if (
+    Object.values(req.body).some(
+      (value) => typeof value === "string" && value.trim() === ""
+    ) ||
+    Object.keys(req.body).length === 0
+  ) {
+    const error = new Error(
+      "De verdad intentaste mandar un servicio vacio? no jodas"
+    );
     return res.status(400).json({
       msg: error.message,
     });
+  }
+  // Validar que el precio sea un número positivo
+  const price = parseFloat(req.body.price);
+  if (isNaN(price) || price <= 0) {
+    const error = new Error(
+      "El precio debe ser un número positivo. A menos que te guste trabajar gratis"
+    );
+    return res.status(400).json({ msg: error.message });
   }
 
   try {
     const service = new servicesModels(req.body);
     await service.save();
-    const exito = "si llego we";
-    console.log(service, exito);
-    res.json({
-      msg: exito,
+    res.status(201).json({
+      // Es buena práctica devolver el objeto creado y un status 201
+      msg: "Servicio creado con el poder de mil soles",
+      service,
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(
+      colors.red.bold(`☠️  Error al crear servicio: ${error.message}`)
+    );
+    // Puede ser un error de validación de Mongoose si los tipos no coinciden
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        msg: "Datos inválidos para el servicio.",
+        details: error.errors,
+      });
+    }
+    res.status(500).json({
+      msg: "Error interno del servidor. no quiso .. el servicio.. nacer hoy.",
+    });
   }
 };
 
 const getServices = async (req, res) => {
   try {
     const services = await servicesModels.find();
+    // Si no hay servicios, devolvemos un array vacío, ¡no es un error!
     res.json(services);
   } catch (error) {
-    console.log(error);
+    console.error(
+      colors.red.bold(`☠️  Error al obtener servicios: ${error.message}`)
+    );
+    res.status(500).json({
+      msg: "Error los servicios se escondieron.",
+    });
   }
 };
 
+// Usaremos el middleware findServiceByIdMiddleware para getServiceByID, updateService, deleteService
+// Por lo tanto, req.service ya estará disponible si se encuentra.
+
 const getServiceByID = async (req, res) => {
-  const { id } = req.params;
-
-  if (validateObjectId(id)) {
-    return handleNotFoundError("Te inventaste la id we", res, 400);
-  } else {
-    console.log(`La id ingresada existe: ${id}`);
-  }
-
-  const service = await servicesModels.findById(id);
-
-  if (validateServiceId(service)) {
-    return handleNotFoundError("Alguien se saco el servicio del jaimico", res);
-  } else {
-    console.log(`El servicio ${service} existe`);
-  }
-
-  res.json(service);
+  // La validación y búsqueda ya la hizo el middleware 'findServiceByIdMiddleware'
+  // Si llegamos aquí, req.service existe.
+  res.json(req.service);
 };
 
 const updateService = async (req, res) => {
-  console.log(req.body);
-  const { id } = req.params;
+  // La validación y búsqueda ya la hizo el middleware 'findServiceByIdMiddleware'
+  // Si llegamos aquí, req.service existe y está en req.service.
+  const service = req.service;
 
-  if (validateObjectId(id)) {
-    return handleNotFoundError(
-      "Te inventaste la id, el update no fue valido",
-      res,
-      400
-    );
-  } else {
-    console.log(`La id ingresada existe: ${id}`);
+  const { name, price } = req.body;
+
+  // Validar que el precio, si se proporciona, sea un número positivo
+  if (price !== undefined) {
+    const numericPrice = parseFloat(price);
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      const error = new Error(
+        "¿De verdad intentaste poner un precio negativo? Mucha plata eh?"
+      );
+      return res.status(400).json({ msg: error.message });
+    }
+    service.price = numericPrice;
   }
 
-  const service = await servicesModels.findById(id);
-
-  if (validateServiceId(service)) {
-    return handleNotFoundError(
-      "Alguien se saco el servicio del jaimico y el update tambien desaparecio",
-      res
-    );
-  } else {
-    console.log(`El servicio ${service} existe`);
-  }
-
-  service.name = req.body.name || service.name;
-  service.price = req.body.price || service.price;
+  // Actualizamos solo los campos que vienen en el request.
+  service.name = name || service.name;
 
   try {
     await service.save();
-    console.log("Updated");
+    // console.log("Updated");
     res.json({
-      msg: "Servicio actualizado con éxito",
+      msg: "Servicio actualizado con la maestría de un maestro yi 7000000.",
       updatedService: service,
     });
   } catch (error) {
-    console.error(error);
+    console.error(
+      colors.red.bold(`☠️  Error al actualizar servicio: ${error.message}`)
+    );
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        msg: "Datos inválidos para actualizar el servicio.",
+        details: error.errors,
+      });
+    }
     res.status(500).json({
-      msg: "Hubo un error al actualizar el servicio",
+      msg: "Hubo un error al actualizar el servicio. Parece que se resistió al cambio.",
     });
   }
 };
 
 const deleteService = async (req, res) => {
-  const { id } = req.params;
-
-  if (validateObjectId(id)) {
-    return handleNotFoundError(
-      "Te inventaste la id, no puedes borrar nada",
-      res,
-      400
-    );
-  } else {
-    console.log(`La id ingresada existe: ${id}`);
-  }
-
-  const service = await servicesModels.findById(id);
-
-  if (validateServiceId(service)) {
-    return handleNotFoundError(
-      "Noup server no valido para borrar la data",
-      res
-    );
-  } else {
-    console.log(`El servicio ${service} existe`);
-  }
+  // La validación y búsqueda ya la hizo el middleware 'findServiceByIdMiddleware'
+  // Si llegamos aquí, req.service existe.
+  const service = req.service;
 
   try {
     await service.deleteOne();
-    console.log(
-      `borrando toda la base de datos... na bromita solo se borro el seleccionado`
-    );
+    // console.log(
+    //   `borrando toda la base de datos... na bromita solo se borro el seleccionado`
+    // );
     res.json({
-      msg: "El servicio fue erradicado de la existencia",
+      msg: "El servicio fue erradicado de la existencia.",
     });
   } catch (error) {
-    console.log(error);
+    console.error(
+      colors.red.bold(`☠️  Error al borrar servicio: ${error.message}`)
+    );
+    res.status(500).json({
+      msg: "Error interno del servidor. El servicio se aferra a la vida.",
+    });
   }
 };
 
@@ -141,4 +187,5 @@ export {
   getServiceByID,
   updateService,
   deleteService,
+  findServiceByIdMiddleware,
 };

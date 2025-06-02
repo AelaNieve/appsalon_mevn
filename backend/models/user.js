@@ -1,37 +1,52 @@
 import mongoose from "mongoose";
-import { uniqueId } from "../helpers/errorHandeling.js"; // Assuming this is for token generation
+import { uniqueId } from "../helpers/errorHandeling.js"; // Asegúrate que la ruta sea correcta si mueves/renombras helpers
+import bcrypt from "bcryptjs"; // Necesario para el pre-save hook si lo implementas aquí
 
-const userSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
+// Esquema para el Usuario
+const userSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [
+        true,
+        "El nombre es requerido, los anónimos no son permitidos",
+      ],
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: [
+        true,
+        "La contraseña es tu llave secreta, no la olvides pero muy seguramente la vas a olvidar",
+      ],
+      trim: true, // Aunque bcrypt maneja espacios... es un poco redundante
+    },
+    email: {
+      type: String,
+      required: [true, "El email es necesario!"],
+      trim: true,
+      unique: true, // ¡Un email por persona, como el DNI!
+      lowercase: true, // Guardamos en minúsculas para evitar duplicados
+      match: [
+        /.+\@.+\..+/,
+        "Por favor, introduce un email válido, ¡no nos engañas!",
+      ], // Validación básica de formato
+    },
+    token: {
+      type: String,
+      default: () => uniqueId(), // Genera un token único al crear para validar al usuario y luego sera borrado
+    },
+    verified: {
+      type: Boolean,
+      default: false, // Empieza sin verificar.
+    },
+    admin: {
+      type: Boolean,
+      default: false, // Por defecto, no eres admin.
+    },
   },
-  password: {
-    type: String,
-    required: true,
-    trim: true, // Still good to trim any accidental whitespace
-  },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true,
-    lowercase: true,
-  },
-  token: {
-    type: String,
-    default: () => uniqueId(), // Assuming uniqueId is a function that generates a unique ID
-  },
-  verified: {
-    type: Boolean,
-    default: false,
-  },
-  admin: {
-    type: Boolean,
-    default: false,
-  },
-});
+  { timestamps: true }
+); // timestamps añade createdAt y updatedAt automáticamente, ¡útil para rastrear!
 
 const User = mongoose.model("User", userSchema);
 
