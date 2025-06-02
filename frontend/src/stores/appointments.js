@@ -29,6 +29,16 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     }
   }
 
+  function createAppointment() {
+    const appointment = {
+      services: services.value.map((service) => service._id),
+      date: date.value,
+      time: time.value,
+      totalAmount: totalAmount.value,
+    }
+    console.log(appointment)
+  }
+
   function dismissMaxServicesAlert() {
     showMaxServicesAlert.value = false
   }
@@ -99,6 +109,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
   return {
     totalAmount,
     services,
+    createAppointment,
     onServiceSelected,
     isServiceSelected,
     noServicesSelected,

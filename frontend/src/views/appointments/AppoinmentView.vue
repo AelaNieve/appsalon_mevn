@@ -108,7 +108,10 @@ const handleDismissWeekendAlert = () => {
         </div>
       </div>
       <div v-if="appointments.isValidReservation">
-        <button class="cursor-pointer w-full md:w-auto bg-blue-500 p-3 rounded-lg">
+        <button
+          class="cursor-pointer w-full md:w-auto bg-blue-500 p-3 rounded-lg"
+          @click="appointments.createAppointment"
+        >
           Confirmar reservación
         </button>
       </div>
@@ -117,6 +120,6 @@ const handleDismissWeekendAlert = () => {
   <CustomAlert
     :visible="showWeekendAlert"
     @close="handleDismissWeekendAlert"
-    message="🗓️ Lo sentimos, no se pueden seleccionar Sábados ni Domingos. Por favor, elige otro día. 🙏"
+    message="Lo sentimos, no se pueden seleccionar Sábados ni Domingos. Por favor, elige otro día."
   />
 </template>
