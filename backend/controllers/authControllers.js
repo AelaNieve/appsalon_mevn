@@ -1,5 +1,6 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs"; // Import bcrypt
+import { sendEmailVerification } from "../emails/authEmailService.js";
 
 const commonPatternsString = process.env.COMMON_PASSWORD_PATTERNS || "";
 const commonPatterns = commonPatternsString
@@ -169,7 +170,15 @@ const register = async (req, res) => {
     });
 
     await user.save();
-    return res.status(201).json({ msg: "Yayyy lograste registrate!" }); // 201 Created
+
+    sendEmailVerification({
+      name: user.name,
+      email: user.email,
+      token: user.token,
+    });
+    return res
+      .status(201)
+      .json({ msg: "Yayyy lograste registrate!, pero verifica el email" }); // 201 Created
   } catch (error) {
     console.error(error); // Use console.error for errors
     return res.status(500).json({ msg: "F no se pudo registrar." });
