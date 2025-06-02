@@ -33,4 +33,7 @@ function validateServiceId(service) {
   return false;
 }
 
-export { validateObjectId, validateServiceId, handleNotFoundError };
+const uniqueId = () =>
+  Date.now().toString(32) + Math.random().toString(32).substring(2);
+
+export { validateObjectId, validateServiceId, handleNotFoundError, uniqueId };
