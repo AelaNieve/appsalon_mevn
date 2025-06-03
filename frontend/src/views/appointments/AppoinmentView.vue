@@ -1,6 +1,6 @@
 <script setup>
-import SelectedService from '@/components/SelectedService.vue'
-import CustomAlert from '@/components/CustomAlert.vue' // Import CustomAlert
+import SelectedService from '@/views/appointments/SelectedService.vue'
+import CustomAlert from '@/views/CustomAlert.vue' // Import CustomAlert
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { ref, computed } from 'vue' // Import ref and computed

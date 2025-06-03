@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { formatCurrency } from '../helpers'
+import { formatCurrency } from '@/helpers/index.js'
 import { useAppointmentsStore } from '@/stores/appointments'
 
 const appointments = useAppointmentsStore()

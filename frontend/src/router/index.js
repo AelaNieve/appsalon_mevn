@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
-import AppointmentsLayout from '../views/AppointmentsLayout.vue'
+import AuthLayout from '@/components/AuthLayout.vue'
+import AppointmentsLayout from '@/components/AppointmentsLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,7 +19,7 @@ const router = createRouter({
         {
           path: 'nueva',
 
-          component: () => import('../views/NewAppointmentsLayout.vue'),
+          component: () => import('../views/appointments/NewAppointmentsLayout.vue'),
           children: [
             {
               path: '',
@@ -31,6 +32,28 @@ const router = createRouter({
               component: () => import('../views/appointments/AppoinmentView.vue'),
             },
           ],
+        },
+      ],
+    },
+    {
+      path: '/auth',
+      name: 'auth',
+      component: AuthLayout,
+      children: [
+        {
+          path: 'registro',
+          name: 'register',
+          component: () => import('../views/auth/RegisterView.vue'),
+        },
+        {
+          path: 'confirmar-cuenta/:token',
+          name: 'confirm-account',
+          component: () => import('../views/auth/ConfirmAccountView.vue'),
+        },
+        {
+          path: 'login',
+          name: 'login',
+          component: () => import('../views/auth/LoginView.vue'),
         },
       ],
     },
