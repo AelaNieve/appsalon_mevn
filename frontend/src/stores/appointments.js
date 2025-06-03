@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
-import { ref, computed, onMounted, watch } from 'vue' // Import watch
+import { ref, computed, onMounted, watch } from 'vue'
+import { useAlertStore } from './useAlertStore' // Import the alert store
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   const services = ref([])
-  const showMaxServicesAlert = ref(false)
-  const showWeekendAlert = ref(false) // New ref for weekend alert
-
   const date = ref('') // Date for the appointment
   const hours = ref([]) // Available hours
   const time = ref('') // Selected time
+
+  const alertStore = useAlertStore() // Initialize the alert store
 
   function onServiceSelected(service) {
     if (services.value.some((selectedService) => selectedService._id == service._id)) {
@@ -17,12 +17,8 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       )
     } else {
       if (services.value.length >= 2) {
-        showMaxServicesAlert.value = true
-        setTimeout(() => {
-          if (showMaxServicesAlert.value) {
-            dismissMaxServicesAlert()
-          }
-        }, 4000)
+        // Use the alert store to show the max services alert
+        alertStore.showAlert('Solo puedes agendar 2 servicios por cita.', 'warning', 4000)
         return
       }
       services.value.push(service)
@@ -37,15 +33,8 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       totalAmount: totalAmount.value,
     }
     console.log(appointment)
-  }
-
-  function dismissMaxServicesAlert() {
-    showMaxServicesAlert.value = false
-  }
-
-  // New function to dismiss the weekend alert
-  function dismissWeekendAlert() {
-    showWeekendAlert.value = false
+    // Optionally, show a success alert after creating an appointment
+    alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
   }
 
   const isServiceSelected = computed(() => {
@@ -71,33 +60,23 @@ export const useAppointmentsStore = defineStore('appointments', () => {
   // Watch for changes in the selected date
   watch(date, (newDate) => {
     if (newDate) {
-      // The date from <input type="date"> is in 'YYYY-MM-DD' format.
-      // To reliably get the day of the week in the user's local timezone:
-      const parts = newDate.split('-') // e.g., "2024-06-01" -> ["2024", "06", "01"]
+      const parts = newDate.split('-')
       const year = parseInt(parts[0], 10)
-      const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed in JavaScript Date (0 for January, 11 for December)
+      const month = parseInt(parts[1], 10) - 1
       const dayOfMonth = parseInt(parts[2], 10)
 
       const selectedDateObject = new Date(year, month, dayOfMonth)
       const dayOfWeek = selectedDateObject.getDay() // 0 for Sunday, 6 for Saturday
 
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        // Check if it's a Sunday or Saturday
-        showWeekendAlert.value = true // Set the ref to true to show the custom alert
-        setTimeout(() => {
-          if (showWeekendAlert.value) {
-            dismissWeekendAlert()
-          }
-        }, 4000)
+        // Use the alert store to show the weekend alert
+        alertStore.showAlert('No abrimos los fines de semana.', 'error', 4000)
         date.value = '' // Reset the date
-        // Optionally, if a time was selected based on this date, you might want to reset it too:
-        // time.value = '';
       }
     }
   })
 
   const isValidReservation = computed(() => {
-    // Ensures all necessary fields are filled and the date is valid (not a weekend, as it would be reset)
     return (
       services.value.length > 0 &&
       date.value.length > 0 &&
@@ -113,10 +92,6 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     onServiceSelected,
     isServiceSelected,
     noServicesSelected,
-    showMaxServicesAlert,
-    dismissMaxServicesAlert,
-    showWeekendAlert, // Expose the new ref
-    dismissWeekendAlert, // Expose the new function
     selectedServicesCount,
     date,
     hours,

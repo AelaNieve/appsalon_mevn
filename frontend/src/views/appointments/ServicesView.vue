@@ -1,26 +1,12 @@
 <script setup>
 import ServiceItem from './ServiceItem.vue'
 
-import CustomAlert from '../CustomAlert.vue'
-
 import { userServicesStore } from '../../stores/services.js'
 
-import { useAppointmentsStore } from '../../stores/appointments.js'
-import { storeToRefs } from 'pinia'
-
 const servicesDisplayStore = userServicesStore()
-const appointmentsStore = useAppointmentsStore()
-
-const { showMaxServicesAlert } = storeToRefs(appointmentsStore)
-
-const handleCloseAlert = () => {
-  appointmentsStore.dismissMaxServicesAlert()
-}
 </script>
 
 <template>
-  <CustomAlert :visible="showMaxServicesAlert" @close="handleCloseAlert" />
-
   <div class="flex items-center justify-center mb-5">
     <div
       class="flex max-w-md overflow-hidden rounded-xl shadow-lg border border-gray-200 bg-gradient-to-r from-white via-pastel-lilac to-light-mauve transition-transform duration-300 hover:scale-105"

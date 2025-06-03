@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import CustomAlert from '@/views/CustomAlert.vue' // Import the CustomAlert component
-import { useAlertStore } from '@/stores/alert' // Import the alert store
+import { useAlertStore } from '@/stores/useAlertStore' // Import the alert store
 
 const authRoutes = [
   { name: 'register', text: 'Crear una cuenta' },
@@ -27,10 +27,15 @@ const alertStore = useAlertStore()
       >
     </nav>
 
-    <CustomAlert
-      :visible="alertStore.visible"
-      :message="alertStore.message"
-      @close="alertStore.dismissAlert"
-    />
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col space-y-3">
+      <CustomAlert
+        v-for="alert in alertStore.alerts"
+        :key="alert.id"
+        :id="alert.id"
+        :message="alert.message"
+        :type="alert.type"
+        @close="alertStore.dismissAlert"
+      />
+    </div>
   </div>
 </template>

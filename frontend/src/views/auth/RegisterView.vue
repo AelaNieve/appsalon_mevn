@@ -3,10 +3,11 @@ import { useForm, Field, ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
 import { useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
-import CustomAlert from '@/views/CustomAlert.vue'
+// Removed CustomAlert import as it will be managed globally in AuthLayout.vue
+// import CustomAlert from '@/views/CustomAlert.vue'
 import AuthAPI from '@/api/AuthAPI'
 import { passwordRules } from '@/helpers/passwordValidation'
-import { useAlertStore } from '@/stores/alert' // Import the alert store
+import { useAlertStore } from '@/stores/useAlertStore' // Import the alert store
 
 const router = useRouter()
 const alertStore = useAlertStore() // Instantiate the alert store
@@ -41,14 +42,15 @@ const { handleSubmit, isSubmitting, setErrors, values } = useForm({
   },
 })
 
-// Custom Alert State for ERRORS only (successful registration will use the store)
-const showAlert = ref(false)
-const alertMessage = ref('')
+// Removed local alert state:
+// const showAlert = ref(false)
+// const alertMessage = ref('')
 
-const handleDismissAlert = () => {
-  showAlert.value = false
-  alertMessage.value = ''
-}
+// Removed local dismiss alert function:
+// const handleDismissAlert = () => {
+//   showAlert.value = false
+//   alertMessage.value = ''
+// }
 
 // State for password visibility
 const passwordFieldType = ref('password')
@@ -87,6 +89,7 @@ const onSubmit = handleSubmit(async (values) => {
     // Display success alert using the Pinia store
     alertStore.showAlert(
       response.data.msg || '¡Cuenta creada exitosamente! Revisa tu email para confirmarla.',
+      'success', // Specify type as 'success'
     )
 
     // Navigate immediately, no delay needed here
@@ -94,8 +97,11 @@ const onSubmit = handleSubmit(async (values) => {
   } catch (error) {
     console.error('Registration failed:', error)
     if (error.response && error.response.data && error.response.data.msg) {
-      showAlert.value = true
-      alertMessage.value = `Error al crear la cuenta: ${error.response.data.msg}`
+      // Use the Pinia store for error alerts
+      alertStore.showAlert(
+        `Error al crear la cuenta: ${error.response.data.msg}`,
+        'error', // Specify type as 'error'
+      )
     } else if (error.response && error.response.data && error.response.data.errors) {
       // Using the backend response error
       const backendErrors = error.response.data.errors
@@ -106,11 +112,11 @@ const onSubmit = handleSubmit(async (values) => {
           }
         })
       }
-      showAlert.value = true
-      alertMessage.value = 'Error al crear la cuenta: Por favor, revisa los campos.'
+      // Use the Pinia store for error alerts
+      alertStore.showAlert('Error al crear la cuenta: Por favor, revisa los campos.', 'error') // Specify type as 'error'
     } else {
-      showAlert.value = true
-      alertMessage.value = 'Error al crear la cuenta. Por favor, inténtalo de nuevo.'
+      // Use the Pinia store for generic error alerts
+      alertStore.showAlert('Error al crear la cuenta. Por favor, inténtalo de nuevo.', 'error') // Specify type as 'error'
     }
   }
 })
@@ -217,5 +223,4 @@ const onSubmit = handleSubmit(async (values) => {
       </div>
     </form>
   </div>
-  <CustomAlert :visible="showAlert" :message="alertMessage" @close="handleDismissAlert" />
 </template>
