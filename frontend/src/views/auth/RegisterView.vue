@@ -2,60 +2,12 @@
 import { useForm, Field, ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
 import { useRouter } from 'vue-router'
-import api from '../../lib/axios'
-import { ref, computed } from 'vue' // Import 'computed'
+import { ref, computed } from 'vue'
 import CustomAlert from '@/views/CustomAlert.vue'
+import AuthAPI from '@/api/AuthAPI'
+import { passwordRules } from '@/helpers/passwordValidation'
 
 const router = useRouter()
-
-// --- Cheo que contraseña segura (Igual a backend\controllers\authControllers.js pero
-// sin la validación de la contraseña publica) ---
-const MIN_PASSWORD_LENGTH = 16
-const HAS_UPPERCASE_REGEX = /[A-Z]/
-const HAS_LOWERCASE_REGEX = /[a-z]/
-const HAS_NUMBER_REGEX = /[0-9]/
-const HAS_SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/
-const REPEATING_CHARS_REGEX = /(.)\1{3,}/
-const SIMPLE_NUMBER_SEQUENCES_REGEX =
-  /123|234|345|456|567|678|789|890|098|987|876|765|654|543|432|321/
-const SIMPLE_ALPHABET_SEQUENCES_REGEX =
-  /abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i
-
-// Define password validation rules with descriptive messages
-const passwordRules = [
-  {
-    test: (value) => value && value.length >= MIN_PASSWORD_LENGTH,
-    message: `Debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`,
-  },
-  {
-    test: (value) => value && HAS_UPPERCASE_REGEX.test(value),
-    message: 'Debe incluir al menos una letra mayúscula',
-  },
-  {
-    test: (value) => value && HAS_LOWERCASE_REGEX.test(value),
-    message: 'Debe incluir al menos una letra minúscula',
-  },
-  {
-    test: (value) => value && HAS_NUMBER_REGEX.test(value),
-    message: 'Debe incluir al menos un número',
-  },
-  {
-    test: (value) => value && HAS_SPECIAL_CHAR_REGEX.test(value),
-    message: 'Debe incluir al menos un carácter especial (ej. !@#$%^&*)',
-  },
-  {
-    test: (value) => value && !REPEATING_CHARS_REGEX.test(value),
-    message: 'No debe tener secuencias de caracteres repetidos (ej. "aaaa")',
-  },
-  {
-    test: (value) => value && !SIMPLE_NUMBER_SEQUENCES_REGEX.test(value),
-    message: 'No debe contener secuencias numéricas simples (ej. "1234")',
-  },
-  {
-    test: (value) => value && !SIMPLE_ALPHABET_SEQUENCES_REGEX.test(value),
-    message: 'No debe contener secuencias alfabéticas simples (ej. "abcd")',
-  },
-]
 
 // Utilizamos yup en lugar de formkit por que tailwind 4.1 no es compatible
 const schema = yup.object({
@@ -123,14 +75,14 @@ const onSubmit = handleSubmit(async (values) => {
   const { name, email, password } = values
 
   try {
-    // Llamando a la API desde servicesAPI.js
-    const response = await api.post('/auth/register', {
+    // Calling the API from AuthAPI.js
+    const response = await AuthAPI.registerUser({
       name,
       email,
       password,
     })
 
-    // El backend debe responder de forma exitosa antes de continuar
+    // The backend should respond successfully before continuing
     showAlert.value = true
     alertMessage.value =
       response.data.msg || '¡Cuenta creada exitosamente! Revisa tu email para confirmarla.'
@@ -145,7 +97,7 @@ const onSubmit = handleSubmit(async (values) => {
       showAlert.value = true
       alertMessage.value = `Error al crear la cuenta: ${error.response.data.msg}`
     } else if (error.response && error.response.data && error.response.data.errors) {
-      // Utilizando el error de respuesta del backend
+      // Using the backend response error
       const backendErrors = error.response.data.errors
       if (typeof backendErrors === 'object' && backendErrors !== null) {
         Object.entries(backendErrors).forEach(([field, messages]) => {
