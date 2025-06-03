@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { uniqueId } from "../helpers/errorHandeling.js"; // Asegúrate que la ruta sea correcta si mueves/renombras helpers
-import bcrypt from "bcryptjs"; // Necesario para el pre-save hook si lo implementas aquí
 
 // Esquema para el Usuario
 const userSchema = mongoose.Schema(

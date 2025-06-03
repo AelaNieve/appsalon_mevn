@@ -24,9 +24,7 @@ export async function sendEmailVerification({ name, email, token }) {
     mailtrapPass
   );
 
-  const verificationLink = `${
-    process.env.BACKEND_URL || "http://localhost:4000"
-  }/api/auth/verify/${token}`;
+  const verificationLink = `${process.env.BACKEND_URL}/api/auth/verify/${token}`;
 
   const emailOptions = {
     from: '"AppSalon Co." <no-reply@appsalon.com>', // Un remitente más formal
