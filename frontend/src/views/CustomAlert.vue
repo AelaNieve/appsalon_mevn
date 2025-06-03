@@ -7,7 +7,7 @@ defineProps({
   // Add a new prop for the message
   message: {
     type: String,
-    default: 'Solo se puede seleccionar 2 servicios por cita.', // Keep the original default
+    default: 'Error', // Keep the original default
   },
 })
 

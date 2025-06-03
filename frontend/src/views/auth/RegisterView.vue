@@ -6,8 +6,10 @@ import { ref, computed } from 'vue'
 import CustomAlert from '@/views/CustomAlert.vue'
 import AuthAPI from '@/api/AuthAPI'
 import { passwordRules } from '@/helpers/passwordValidation'
+import { useAlertStore } from '@/stores/alert' // Import the alert store
 
 const router = useRouter()
+const alertStore = useAlertStore() // Instantiate the alert store
 
 // Utilizamos yup en lugar de formkit por que tailwind 4.1 no es compatible
 const schema = yup.object({
@@ -39,7 +41,7 @@ const { handleSubmit, isSubmitting, setErrors, values } = useForm({
   },
 })
 
-// Custom Alert State
+// Custom Alert State for ERRORS only (successful registration will use the store)
 const showAlert = ref(false)
 const alertMessage = ref('')
 
@@ -82,15 +84,13 @@ const onSubmit = handleSubmit(async (values) => {
       password,
     })
 
-    // The backend should respond successfully before continuing
-    showAlert.value = true
-    alertMessage.value =
-      response.data.msg || '¡Cuenta creada exitosamente! Revisa tu email para confirmarla.'
+    // Display success alert using the Pinia store
+    alertStore.showAlert(
+      response.data.msg || '¡Cuenta creada exitosamente! Revisa tu email para confirmarla.',
+    )
 
-    // Add a 2.5-second delay before navigating
-    setTimeout(() => {
-      router.push({ name: 'login' })
-    }, 2500) // 2500 milliseconds = 2.5 seconds
+    // Navigate immediately, no delay needed here
+    router.push({ name: 'login' })
   } catch (error) {
     console.error('Registration failed:', error)
     if (error.response && error.response.data && error.response.data.msg) {
