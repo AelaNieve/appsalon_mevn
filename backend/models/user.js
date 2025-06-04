@@ -35,6 +35,8 @@ const userSchema = mongoose.Schema(
       type: String,
       default: () => uniqueId(), // Genera un token único al crear para validar al usuario y luego sera borrado
     },
+    deleteToken: { type: String },
+    deleteTokenExpires: { type: Date },
     verified: {
       type: Boolean,
       default: false, // Empieza sin verificar.

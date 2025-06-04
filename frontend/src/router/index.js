@@ -55,6 +55,11 @@ const router = createRouter({
           name: 'login',
           component: () => import('../views/auth/LoginView.vue'),
         },
+        {
+          path: 'recuperar-cuenta',
+          name: 'forgot-password',
+          component: () => import('../views/auth/RecoverAccount.vue'),
+        },
       ],
     },
   ],

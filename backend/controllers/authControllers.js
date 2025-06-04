@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import colors from "colors";
 import { sendEmailVerification } from "../emails/authEmailService.js";
+import { requestAccountDeletion } from "../emails/deleteEmailService.js";
 import { createHash } from "node:crypto"; // Importación directa, ya que solo se usa para sha1
 
 const commonPatternsString = process.env.COMMON_PASSWORD_PATTERNS || "";
@@ -287,4 +288,37 @@ const login = async (req, res) => {
   }
 };
 
-export { register, verifyAccount, login };
+// New controller function for handling account deletion requests
+const handleDeleteAccountRequest = async (req, res) => {
+  const { email } = req.body;
+
+  // Basic validation for email
+  if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
+    // Added regex for basic email format check
+    return res.status(400).json({ msg: "A valid email address is required." });
+  }
+
+  try {
+    const result = await requestAccountDeletion(email);
+
+    // The service returns an object with 'error', 'status', and 'message' or 'success', 'status', 'message'
+    if (result.error) {
+      return res.status(result.status).json({ msg: result.message });
+    }
+
+    return res.status(result.status || 200).json({ msg: result.message });
+  } catch (error) {
+    // This catch block is for unexpected errors *within this controller function*
+    // or if the service re-throws an unhandled critical error.
+    console.error(
+      colors.red.bold(
+        `☠️  Critical error in handleDeleteAccountRequest controller: ${error.message}`
+      )
+    );
+    return res.status(500).json({
+      msg: "Internal server error. Unable to process your request at this time.",
+    });
+  }
+};
+
+export { register, verifyAccount, login, handleDeleteAccountRequest };

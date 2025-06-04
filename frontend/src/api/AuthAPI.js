@@ -9,4 +9,8 @@ export default {
   registerUser(userData) {
     return api.post('/auth/register', userData)
   },
+
+  verifyAccount(token) {
+    return api.get(`/auth/verify/${token}`)
+  },
 }

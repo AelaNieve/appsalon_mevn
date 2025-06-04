@@ -3,6 +3,7 @@ import {
   register,
   verifyAccount,
   login,
+  handleDeleteAccountRequest, // Import the new controller function
 } from "../controllers/authControllers.js";
 
 const router = express.Router();
@@ -16,5 +17,8 @@ router.get("/verify/:token", verifyAccount);
 
 // POST api/auth/login
 router.post("/login", login);
+
+// POST api/auth/delete-account - Route to request account deletion
+router.post("/delete-account", handleDeleteAccountRequest);
 
 export default router;
