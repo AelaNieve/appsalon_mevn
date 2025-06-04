@@ -26,8 +26,33 @@ function serviceExists(service) {
   return service != null; // O simplemente !!service
 }
 
+// Helper function to validate Mailtrap environment variables
+function validateMailtrapConfig() {
+  const mailtrapHost = process.env.MAILTRAP_HOST;
+  const mailtrapPort = parseInt(process.env.MAILTRAP_PORT, 10);
+  const mailtrapUser = process.env.MAILTRAP_USER;
+  const mailtrapPass = process.env.MAILTRAP_PASS;
+
+  if (!mailtrapHost || !mailtrapPort || !mailtrapUser || !mailtrapPass) {
+    console.error(
+      colors.red.bold(
+        "☠️  Error: Faltan variables de entorno para la configuración de Mailtrap. El correo no se enviará."
+      )
+    );
+    throw new Error("Mailtrap configuration missing.");
+  }
+
+  return { mailtrapHost, mailtrapPort, mailtrapUser, mailtrapPass };
+}
+
 // Generador de IDs únicos
 const uniqueId = () =>
   Date.now().toString(32) + Math.random().toString(32).substring(2);
 
-export { isValidObjectId, serviceExists, handleNotFoundError, uniqueId };
+export {
+  isValidObjectId,
+  serviceExists,
+  handleNotFoundError,
+  uniqueId,
+  validateMailtrapConfig,
+};

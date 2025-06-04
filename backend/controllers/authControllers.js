@@ -158,6 +158,9 @@ const register = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const error = new Error(
+        "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!"
+      );
+      console.log(
         "Este correo ya está registrado. ¿Se te olvidó que ya tenías cuenta?"
       );
       return res.status(409).json({ msg: error.message }); // 409 Conflict
@@ -327,11 +330,16 @@ const confirmAccountDeletion = async (req, res) => {
 // Renamed from verifyDelete
 const requestAccountDeletion = async (req, res) => {
   const { email } = req.body;
-  // ... (validation for email) ...
+  if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).json({ msg: "El email no es valido." });
+  }
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      /* ... generic response ... */
+      console.log("Usuario no existe");
+      return res.status(200).json({
+        msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
+      });
     }
 
     // In requestAccountDeletion (formerly verifyDelete), after finding the user:
@@ -349,9 +357,10 @@ const requestAccountDeletion = async (req, res) => {
       user.deleteTokenExpires &&
       user.deleteTokenExpires > Date.now()
     ) {
-      return res
-        .status(400)
-        .json({ msg: "Ya existe una solicitud activa. Revise su correo." });
+      console.log("Ya existe una solicitud activa. Revise su correo.");
+      return res.status(400).json({
+        msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
+      });
     }
 
     // Generate token, set expiry, save user
@@ -366,9 +375,10 @@ const requestAccountDeletion = async (req, res) => {
       email: user.email,
       token: user.deleteToken, // Use the new token
     });
-    return res
-      .status(200)
-      .json({ msg: "Enlace de confirmación para eliminar cuenta enviado." });
+    console.log("Enlace de confirmación para eliminar cuenta enviado.");
+    return res.status(200).json({
+      msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
+    });
   } catch (error) {
     console.error(
       colors.red.bold(

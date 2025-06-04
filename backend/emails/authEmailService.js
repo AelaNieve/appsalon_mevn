@@ -1,24 +1,6 @@
 import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
-
-// Helper function to validate Mailtrap environment variables
-function validateMailtrapConfig() {
-  const mailtrapHost = process.env.MAILTRAP_HOST;
-  const mailtrapPort = parseInt(process.env.MAILTRAP_PORT, 10);
-  const mailtrapUser = process.env.MAILTRAP_USER;
-  const mailtrapPass = process.env.MAILTRAP_PASS;
-
-  if (!mailtrapHost || !mailtrapPort || !mailtrapUser || !mailtrapPass) {
-    console.error(
-      colors.red.bold(
-        "☠️  Error: Faltan variables de entorno para la configuración de Mailtrap. El correo no se enviará."
-      )
-    );
-    throw new Error("Mailtrap configuration missing.");
-  }
-
-  return { mailtrapHost, mailtrapPort, mailtrapUser, mailtrapPass };
-}
+import { validateMailtrapConfig } from "../helpers/errorHandeling.js";
 
 export async function sendEmailVerification({ name, email, token }) {
   let mailtrapConfig;
