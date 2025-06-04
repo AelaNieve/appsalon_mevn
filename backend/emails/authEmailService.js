@@ -1,9 +1,10 @@
 import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
 
-export async function sendEmailVerification({ name, email, token }) {
+// Helper function to validate Mailtrap environment variables
+function validateMailtrapConfig() {
   const mailtrapHost = process.env.MAILTRAP_HOST;
-  const mailtrapPort = parseInt(process.env.MAILTRAP_PORT, 10); // Asegúrate que sea número
+  const mailtrapPort = parseInt(process.env.MAILTRAP_PORT, 10);
   const mailtrapUser = process.env.MAILTRAP_USER;
   const mailtrapPass = process.env.MAILTRAP_PASS;
 
@@ -13,14 +14,25 @@ export async function sendEmailVerification({ name, email, token }) {
         "☠️  Error: Faltan variables de entorno para la configuración de Mailtrap. El correo no se enviará."
       )
     );
+    throw new Error("Mailtrap configuration missing.");
+  }
+
+  return { mailtrapHost, mailtrapPort, mailtrapUser, mailtrapPass };
+}
+
+export async function sendEmailVerification({ name, email, token }) {
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
     throw new Error("Mailtrap configuration missing for verification email.");
   }
 
   const transporter = createTransport(
-    mailtrapHost,
-    mailtrapPort,
-    mailtrapUser,
-    mailtrapPass
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
   );
 
   const verificationLink = `${process.env.FRONTEND_URL}/auth/confirmar-cuenta/${token}`;
@@ -65,21 +77,21 @@ export async function sendEmailVerification({ name, email, token }) {
 }
 
 export async function sendDeletionConfirmationEmail({ name, email, token }) {
-  const mailtrapHost = process.env.MAILTRAP_HOST;
-  const mailtrapPort = parseInt(process.env.MAILTRAP_PORT, 10);
-  const mailtrapUser = process.env.MAILTRAP_USER;
-  const mailtrapPass = process.env.MAILTRAP_PASS;
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error("Mailtrap configuration missing for deletion email.");
+  }
 
   const transporter = createTransport(
-    mailtrapHost,
-    mailtrapPort,
-    mailtrapUser,
-    mailtrapPass
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
   );
 
-  // This link implies you will create a frontend route and a backend route
-  // to handle the actual deletion confirmation, e.g., /auth/confirmar-eliminacion/:token
-  const deletionLink = `${process.env.FRONTEND_URL}/auth/confirmar-eliminacion/${token}`;
+  const deletionLink = `${process.env.FRONTEND_URL}/auth/delete-account/${token}`;
 
   const emailOptions = {
     from: '"AppSalon Co." <no-reply@appsalon.com>',
@@ -117,6 +129,6 @@ export async function sendDeletionConfirmationEmail({ name, email, token }) {
         `☠️  Error al enviar email de confirmación de eliminación a ${email}: ${error.message}`
       )
     );
-    throw error; // Re-throw to be caught by requestAccountDeletion in deleteEmailService.js
+    throw error;
   }
 }

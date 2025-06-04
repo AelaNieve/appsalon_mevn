@@ -3,7 +3,9 @@ import {
   register,
   verifyAccount,
   login,
-  handleDeleteAccountRequest, // Import the new controller function
+  // Assuming you rename controllers as suggested:
+  requestAccountDeletion, // Formerly verifyDelete
+  confirmAccountDeletion, // Formerly deleteAccount
 } from "../controllers/authControllers.js";
 
 const router = express.Router();
@@ -18,7 +20,10 @@ router.get("/verify/:token", verifyAccount);
 // POST api/auth/login
 router.post("/login", login);
 
-// POST api/auth/delete-account - Route to request account deletion
-router.post("/delete-account", handleDeleteAccountRequest);
+// Route to request account deletion (sends email with confirmation link)
+router.post("/request-delete-account", requestAccountDeletion); // Changed from deleteAccount
+
+// Route to confirm and execute account deletion using token from email
+router.get("/confirm-delete-account/:deleteToken", confirmAccountDeletion); // Changed from verifyDelete and added /:deleteToken
 
 export default router;

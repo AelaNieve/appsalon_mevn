@@ -1,9 +1,12 @@
 import User from "../models/user.js";
+import { uniqueId } from "../helpers/errorHandeling.js";
 import bcrypt from "bcryptjs";
 import colors from "colors";
-import { sendEmailVerification } from "../emails/authEmailService.js";
-import { requestAccountDeletion } from "../emails/deleteEmailService.js";
-import { createHash } from "node:crypto"; // Importación directa, ya que solo se usa para sha1
+import {
+  sendEmailVerification,
+  sendDeletionConfirmationEmail,
+} from "../emails/authEmailService.js"; // Import the new email service function
+import { createHash } from "node:crypto";
 
 const commonPatternsString = process.env.COMMON_PASSWORD_PATTERNS || "";
 const commonPatterns = commonPatternsString
@@ -183,7 +186,7 @@ const register = async (req, res) => {
     } catch (emailError) {
       console.error(
         colors.red.bold(
-          `☠️  Falló el envío de email de verificación para ${user.email}: ${emailError.message}`
+          `☠️   Falló el envío de email de verificación para ${user.email}: ${emailError.message}`
         )
       );
       // Podemos querer notificar al usuario que tiene un problema el email para recibir correos
@@ -195,7 +198,7 @@ const register = async (req, res) => {
   } catch (error) {
     console.error(
       colors.red.bold(
-        `☠️  Error en el servidor durante el registro: ${error.message}`
+        `☠️   Error en el servidor durante el registro: ${error.message}`
       )
     );
     return res.status(500).json({
@@ -225,7 +228,7 @@ const verifyAccount = async (req, res) => {
   } catch (error) {
     console.error(
       colors.red.bold(
-        `☠️  Error al guardar usuario verificado: ${error.message}`
+        `☠️   Error al guardar usuario verificado: ${error.message}`
       )
     );
     res
@@ -279,7 +282,7 @@ const login = async (req, res) => {
   } catch (error) {
     console.error(
       colors.red.bold(
-        `☠️  Error en el servidor durante el login: ${error.message}`
+        `☠️   Error en el servidor durante el login: ${error.message}`
       )
     );
     return res.status(500).json({
@@ -288,37 +291,103 @@ const login = async (req, res) => {
   }
 };
 
-// New controller function for handling account deletion requests
-const handleDeleteAccountRequest = async (req, res) => {
-  const { email } = req.body;
-
-  // Basic validation for email
-  if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
-    // Added regex for basic email format check
-    return res.status(400).json({ msg: "A valid email address is required." });
-  }
+const confirmAccountDeletion = async (req, res) => {
+  const { deleteToken } = req.params; // Token from URL path
 
   try {
-    const result = await requestAccountDeletion(email);
+    const user = await User.findOne({ deleteToken });
 
-    // The service returns an object with 'error', 'status', and 'message' or 'success', 'status', 'message'
-    if (result.error) {
-      return res.status(result.status).json({ msg: result.message });
+    if (!user) {
+      return res.status(404).json({ msg: "Token no válido o no encontrado." });
     }
 
-    return res.status(result.status || 200).json({ msg: result.message });
+    if (!user.deleteTokenExpires || user.deleteTokenExpires < Date.now()) {
+      // Clear the expired token
+      user.deleteToken = null;
+      user.deleteTokenExpires = null;
+      await user.save();
+      return res.status(401).json({
+        msg: "El enlace para borrar la cuenta ha expirado. Por favor, solicite uno nuevo.",
+      });
+    }
+
+    // Token is valid and not expired, proceed with deletion
+    await User.deleteOne({ _id: user._id });
+    return res.status(200).json({ msg: "Cuenta eliminada con éxito." });
   } catch (error) {
-    // This catch block is for unexpected errors *within this controller function*
-    // or if the service re-throws an unhandled critical error.
     console.error(
-      colors.red.bold(
-        `☠️  Critical error in handleDeleteAccountRequest controller: ${error.message}`
-      )
+      colors.red.bold(`☠️  Error en confirmAccountDeletion: ${error.message}`)
     );
     return res.status(500).json({
-      msg: "Internal server error. Unable to process your request at this time.",
+      msg: "Error interno del servidor. Falló la eliminación de la cuenta.",
     });
   }
 };
 
-export { register, verifyAccount, login, handleDeleteAccountRequest };
+// Renamed from verifyDelete
+const requestAccountDeletion = async (req, res) => {
+  const { email } = req.body;
+  // ... (validation for email) ...
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      /* ... generic response ... */
+    }
+
+    // In requestAccountDeletion (formerly verifyDelete), after finding the user:
+    if (!user.verified) {
+      await User.deleteOne({ _id: user._id });
+      return res
+        .status(200)
+        .json({ msg: "La cuenta no estaba verificada y ha sido eliminada." });
+    }
+    // ... then proceed with token generation and email for verified users
+
+    // Check if a valid token already exists (as implemented in point 1)
+    if (
+      user.deleteToken &&
+      user.deleteTokenExpires &&
+      user.deleteTokenExpires > Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ msg: "Ya existe una solicitud activa. Revise su correo." });
+    }
+
+    // Generate token, set expiry, save user
+    const tempToken = uniqueId();
+    user.deleteToken = tempToken;
+    user.deleteTokenExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send deletion confirmation email
+    await sendDeletionConfirmationEmail({
+      name: user.name,
+      email: user.email,
+      token: user.deleteToken, // Use the new token
+    });
+    return res
+      .status(200)
+      .json({ msg: "Enlace de confirmación para eliminar cuenta enviado." });
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        // Consider a more specific name if you rename the function later
+        `☠️  Error in requestAccountDeletion (requesting deletion) controller: ${error.message}`
+      )
+    );
+    return res.status(500).json({
+      msg: "Error interno del servidor. No se pudo procesar tu solicitud en este momento.",
+    });
+  }
+};
+
+// New controller function to confirm and execute account deletion
+
+export {
+  register,
+  verifyAccount,
+  login,
+  requestAccountDeletion,
+  confirmAccountDeletion,
+};
