@@ -10,11 +10,11 @@ import {
 
 const router = express.Router();
 
-// POST api/services
-router.post("/", createService);
-
 // GET api/services - Para ver todos los servicios
 router.get("/", getServices);
+
+// POST api/services
+router.post("/", createService);
 
 // Rutas que operan sobre un servicio específico por ID
 // Usamos el middleware 'findServiceByIdMiddleware' para validar el ID y cargar el servicio.

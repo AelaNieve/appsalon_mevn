@@ -91,7 +91,7 @@ const createService = async (req, res) => {
 const getServices = async (req, res) => {
   try {
     const services = await servicesModels.find();
-    // console.log(colors.green(`✅ Se consiguio: ${services.length} de services.`));
+    //console.log(colors.green(`✅ Se consiguio: ${services.length} de services.`));
     res.status(200).json({
       msg:
         services.length > 0

@@ -40,7 +40,7 @@ const validatePassword = async (password) => {
   const SIMPLE_ALPHABET_SEQUENCES_REGEX =
     /abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i; // regex que chekea si hay 3 letras secuenciales
 
-  // Función para verificar contra patrones comunes de contraseñas
+  // Función para identificar contrasseñas comunes a nivel de variables de entorno
   const isCommonPattern = (pwd) => {
     const lowerPassword = pwd.toLowerCase();
     for (const pattern of commonPatterns) {
