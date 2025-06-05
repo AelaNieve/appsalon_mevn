@@ -1,3 +1,5 @@
+// backend\index.js
+
 import express from "express";
 import dotenv from "dotenv";
 import colors from "colors";
@@ -11,6 +13,10 @@ dotenv.config();
 
 // Crear la app de Express. Si no, no funkara la API
 const app = express();
+
+// IMPORTANTE: configurando el express para que confie en el proxy
+// Esta linea es utilizada para identificar el ip del cliente
+app.set("trust proxy", 1);
 
 // Permitir que Express lea JSON del body.
 app.use(express.json());

@@ -10,6 +10,11 @@ import {
   sendAccountBloquedEmail,
 } from "../emails/authEmailService.js";
 
+// --- Para prevenir attaquens de spam de creación y eliminación de cuentas ---
+const registrationAttempts = new Map(); // Stores IP addresses and their request timestamps
+const MAX_REGISTRATION_ATTEMPTS = 5; // Max attempts per IP
+const REGISTRATION_TIME_WINDOW_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
+
 /**
  * Valida una contraseña según los criterios definidos.
  * @param {string} password - La contraseña a validar.
@@ -170,14 +175,39 @@ const register = async (req, res) => {
     return res.status(400).json({ msg: passwordValidationResult.message });
   }
 
+  // --- Logica para limitar el ip para evitar spam ---
+  const clientIp = req.ip; // Ensure your Express app is configured to correctly get req.ip
+  const now = Date.now();
+  const attempts = registrationAttempts.get(clientIp) || [];
+
+  // filtrando intentos
+  const recentAttempts = attempts.filter(
+    (timestamp) => now - timestamp < REGISTRATION_TIME_WINDOW_MS
+  );
+
+  if (recentAttempts.length >= MAX_REGISTRATION_ATTEMPTS) {
+    console.warn(
+      colors.yellow(
+        `⚠️ Rate limit exceeded for IP: ${clientIp}. Registration attempts: ${recentAttempts.length}`
+      )
+    );
+    return res.status(429).json({
+      msg: "Demasiadas solicitudes de registro desde esta IP. Por favor, inténtalo más tarde.",
+    });
+  }
+
   try {
+    // Actuarlizar el intento antes de continuar con la registración
+
     const commonResponse =
       "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!";
+
+    registrationAttempts.set(clientIp, [...recentAttempts, now]);
 
     //  Verificar si el usuario ya existe.
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      //console.log(colors.yellow(`☠️  El email no fue encontrado en la base de datos ${email}`));
+      //console.log(colors.yellow(`☠️  El email ya fue encontrado en la base de datos ${email}`));
       return res.status(200).json({ msg: commonResponse });
     }
 
@@ -206,7 +236,11 @@ const register = async (req, res) => {
           `☠️  Falló la función sendEmailVerification de: ${user.email}, error ${emailError.message}`
         )
       );
-      return res.status(201).json({ msg: emailError.message });
+      // si no se puede enviar el correo el usuario es borrado
+      await User.deleteOne({ _id: user._id });
+      return res.status(400).json({
+        msg: `Falló el envío del email de verificación: ${emailError.message}. se cancelo la creación de usuario`,
+      });
     }
     // console.log(`Registro de nuevo usuario exitoso ${user}.`);
     return res.status(200).json({ msg: commonResponse });
@@ -302,12 +336,12 @@ const login = async (req, res) => {
     if (!isPasswordCorrect) {
       //console.error(colors.red.bold(`☠️  Contraseña incorrecta en isPasswordCorrect ${user.password}`));
       user.passwordAttems = user.passwordAttems + 1;
-      user.save();
+      await user.save();
       return res.status(401).json({ msg: commonError });
     }
 
     user.passwordAttems = 0;
-    user.save();
+    await user.save();
 
     return res.status(200).json({
       //console.error(colors.green.bold(`Sesión Iniciada ${user.name}`));
@@ -404,7 +438,7 @@ const confirmAccountDeletion = async (req, res) => {
     const expiredUser = deletionUser.deleteTokenExpires;
     if (expiredUser < Date.now()) {
       deletionUser.deleteToken = "";
-      deletionUser.deleteTokenExpires = null;
+      deletionUser.deleteTokenExpires = "";
       await deletionUser.save();
       //console.log(colors.yellow(`Token de eliminación expirado para ${deleteToken}.`));
       return res.status(200).json({ msg: commonError });
@@ -510,9 +544,8 @@ const resetPassword = async (req, res) => {
     // Si la hora para verificar ya paso se resetea la variable
     if (expiredUser < Date.now()) {
       userResetPasword.passwordResetToken = "";
-      userResetPasword.passwordResetTokenExpires = null;
-      userResetPasword.passwordAttems = 0;
-      await deletionUser.save();
+      userResetPasword.passwordResetTokenExpires = "";
+      await userResetPasword.save();
       //console.log(colors.yellow(`EL link para cambiar contraseña expirado para ${user.name}.`));
       return res.status(200).json({ msg: commonError });
     }
@@ -528,6 +561,8 @@ const resetPassword = async (req, res) => {
     // Reseteando los tokens para la validación para cambiar la contraseña
     userResetPasword.passwordResetToken = "";
     userResetPasword.passwordResetTokenExpires = "";
+    // Esta linea se encarga de resetar la seguridad del brute foce
+    userResetPasword.passwordAttems = 0;
 
     await userResetPasword.save();
     // console.log(colors.green(`Contraseña actualizada con éxito para ${userResetPasword.email}.`));
