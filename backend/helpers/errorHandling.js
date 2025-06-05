@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import colors from "colors";
+import crypto from "crypto";
 
 // A diferencia de la funcion original, esta puede aceptar 3 inputs a la hora de mandar el mensaje del error
 // la primera es un mensaje simple que puede ser sobre-escrito
@@ -46,8 +47,7 @@ function validateMailtrapConfig() {
 }
 
 // Generador de IDs únicos
-const uniqueId = () =>
-  Date.now().toString(32) + Math.random().toString(32).substring(2);
+const uniqueId = () => crypto.randomBytes(15).toString("hex");
 
 export {
   isValidObjectId,

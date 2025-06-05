@@ -174,7 +174,7 @@ export async function sendPasswordRecoveryEmail({ name, email, token }) {
   }
 }
 
-export async function sendAccountBloquedEmail({ name, email }) {
+export async function sendAccountBlockedEmail({ name, email }) {
   let mailtrapConfig;
   try {
     mailtrapConfig = validateMailtrapConfig();

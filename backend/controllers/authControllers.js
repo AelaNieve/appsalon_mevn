@@ -7,7 +7,7 @@ import {
   sendEmailVerification,
   sendDeletionConfirmationEmail,
   sendPasswordRecoveryEmail,
-  sendAccountBloquedEmail,
+  sendAccountBlockedEmail,
 } from "../emails/authEmailService.js";
 
 // --- Para prevenir attaquens de spam de creación y eliminación de cuentas ---
@@ -309,16 +309,16 @@ const login = async (req, res) => {
       return res.status(401).json({ msg: commonError });
     }
 
-    if (user.passwordAttems > 6) {
+    if (user.passwordAttempts > 6) {
       //console.error(colors.red.bold(`Demasiados intentos de iniciar sesión: ${user.name}`));
       return res.status(400).json({
         msg: commonError,
       });
     }
 
-    if (user.passwordAttems == 6) {
+    if (user.passwordAttempts == 6) {
       try {
-        sendAccountBloquedEmail({
+        sendAccountBlockedEmail({
           name: user.name,
           email: user.email,
         });
@@ -327,7 +327,7 @@ const login = async (req, res) => {
         );
       } catch (error) {
         console.error(
-          colors.red.bold(`Error de sendAccountBloquedEmail: ${error.message}`)
+          colors.red.bold(`Error de sendAccountBlockedEmail: ${error.message}`)
         );
       }
     }
@@ -335,12 +335,12 @@ const login = async (req, res) => {
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       //console.error(colors.red.bold(`☠️  Contraseña incorrecta en isPasswordCorrect ${user.password}`));
-      user.passwordAttems = user.passwordAttems + 1;
+      user.passwordAttempts = user.passwordAttempts + 1;
       await user.save();
       return res.status(401).json({ msg: commonError });
     }
 
-    user.passwordAttems = 0;
+    user.passwordAttempts = 0;
     await user.save();
 
     return res.status(200).json({
@@ -532,20 +532,20 @@ const resetPassword = async (req, res) => {
   }
 
   try {
-    const userResetPasword = await User.findOne({ passwordResetToken });
+    const userResetPassword = await User.findOne({ passwordResetToken });
     const commonError =
       "El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicite uno nuevo.";
-    if (!userResetPasword) {
-      //console.log(colors.yellow(`No se encontro usuario con: ${passwordResetToken}, ${userResetPasword}.`));
+    if (!userResetPassword) {
+      //console.log(colors.yellow(`No se encontro usuario con: ${passwordResetToken}, ${userResetPassword}.`));
       return res.status(200).json({ msg: commonError });
     }
     // Consiguiendo la fecha y hora de creación de la petición de resetear contraseña
-    const expiredUser = userResetPasword.passwordResetTokenExpires;
+    const expiredUser = userResetPassword.passwordResetTokenExpires;
     // Si la hora para verificar ya paso se resetea la variable
     if (expiredUser < Date.now()) {
-      userResetPasword.passwordResetToken = "";
-      userResetPasword.passwordResetTokenExpires = "";
-      await userResetPasword.save();
+      userResetPassword.passwordResetToken = "";
+      userResetPassword.passwordResetTokenExpires = "";
+      await userResetPassword.save();
       //console.log(colors.yellow(`EL link para cambiar contraseña expirado para ${user.name}.`));
       return res.status(200).json({ msg: commonError });
     }
@@ -557,15 +557,15 @@ const resetPassword = async (req, res) => {
     }
     // Haseado la contraseña
     const salt = await bcrypt.genSalt(10);
-    userResetPasword.password = await bcrypt.hash(password, salt);
+    userResetPassword.password = await bcrypt.hash(password, salt);
     // Reseteando los tokens para la validación para cambiar la contraseña
-    userResetPasword.passwordResetToken = "";
-    userResetPasword.passwordResetTokenExpires = "";
+    userResetPassword.passwordResetToken = "";
+    userResetPassword.passwordResetTokenExpires = "";
     // Esta linea se encarga de resetar la seguridad del brute foce
-    userResetPasword.passwordAttems = 0;
+    userResetPassword.passwordAttempts = 0;
 
-    await userResetPasword.save();
-    // console.log(colors.green(`Contraseña actualizada con éxito para ${userResetPasword.email}.`));
+    await userResetPassword.save();
+    // console.log(colors.green(`Contraseña actualizada con éxito para ${userResetPassword.email}.`));
     return res.status(200).json({
       msg: "Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
     });
