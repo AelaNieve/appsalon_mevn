@@ -2,6 +2,6 @@
 
 <template>
   <div>
-    <h1>Desde RegisterView</h1>
+    <h1>Desde RequestPasswordView.vue</h1>
   </div>
 </template>

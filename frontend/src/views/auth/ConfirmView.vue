@@ -2,6 +2,7 @@
 
 <template>
   <div>
-    <h1>Desde RegisterView</h1>
+    <h1>Desde ConfirmView</h1>
+    <RouterView />
   </div>
 </template>

@@ -5,7 +5,7 @@ import { useAlertStore } from '@/stores/useAlertStore'
 
 const authRoutes = [
   { name: 'register', text: 'Crear una cuenta' },
-  { name: 'forgot-password', text: '¿Olvidaste tu contraseña?' },
+  { name: 'problems', text: '¿Problemas para iniciar sesión?' }, // Corrected route name
   { name: 'login', text: 'Iniciar sesión' },
 ]
 

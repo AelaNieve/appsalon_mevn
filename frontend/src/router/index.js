@@ -1,3 +1,5 @@
+// frontend\src\router\index.js
+
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -18,7 +20,6 @@ const router = createRouter({
       children: [
         {
           path: 'nueva',
-
           component: () => import('../views/appointments/NewAppointmentsLayout.vue'),
           children: [
             {
@@ -41,24 +42,53 @@ const router = createRouter({
       component: AuthLayout,
       children: [
         {
-          path: 'registro',
-          name: 'register',
-          component: () => import('../views/auth/RegisterView.vue'),
-        },
-        {
-          path: 'confirmar-cuenta/:token',
-          name: 'confirm-account',
-          component: () => import('../views/auth/ConfirmAccountView.vue'),
-        },
-        {
           path: 'login',
           name: 'login',
           component: () => import('../views/auth/LoginView.vue'),
         },
         {
-          path: 'recuperar-cuenta',
-          name: 'forgot-password',
-          component: () => import('../views/auth/RecoverAccount.vue'),
+          path: 'registro',
+          name: 'register',
+          component: () => import('../views/auth/RegisterView.vue'),
+        },
+        {
+          path: 'confirmar',
+          name: 'confirm',
+          component: () => import('../views/auth/ConfirmView.vue'),
+          children: [
+            {
+              path: 'account/:token',
+              name: 'cuenta',
+              component: () => import('../views/auth/ConfirmView/ConfirmAccountView.vue'),
+            },
+            {
+              path: 'borrar-cuenta/:token',
+              name: 'delete-account',
+              component: () => import('../views/auth/ConfirmView/ConfirmDeleteView.vue'),
+            },
+            {
+              path: 'resetear-contraseña/:token',
+              name: 'reset-password',
+              component: () => import('../views/auth/ConfirmView/ConfirmPasswordView.vue'),
+            },
+          ],
+        },
+        {
+          path: 'problemas',
+          name: 'problems',
+          component: () => import('../views/auth/ProblemsView.vue'),
+          children: [
+            {
+              path: 'requerir-borrar-cuenta/:token',
+              name: 'forgot-password',
+              component: () => import('../views/auth/ProblemsView/RequestDeletionView.vue'),
+            },
+            {
+              path: 'requerir-resetear-contraseña/:token',
+              name: 'forgot-password',
+              component: () => import('../views/auth/ProblemsView/RequestPasswordView.vue'),
+            },
+          ],
         },
       ],
     },
