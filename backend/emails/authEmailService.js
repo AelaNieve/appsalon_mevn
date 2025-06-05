@@ -173,3 +173,62 @@ export async function sendPasswordRecoveryEmail({ name, email, token }) {
     throw error; // Propagar el error para que el controlador lo maneje si es necesario
   }
 }
+
+export async function sendAccountBloquedEmail({ name, email }) {
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error(
+      "Mailtrap configuration missing for password recovery email."
+    );
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
+
+  // Asegúrate que la URL del frontend sea la correcta para el reseteo de contraseña
+  const recoveryLink = `${process.env.FRONTEND_URL}/auth/reset-password/`;
+
+  const emailOptions = {
+    from: '"AppSalon Co." <no-reply@appsalon.com>',
+    to: email,
+    subject: "❌ Cuenta Bloqueada de AppSalon ❌",
+    text: `¡IMPORTANTE ${name}!\n\nTu cuenta de AppSalon ha sido bloqueada.\n\ Para restablecer tu contraseña, por favor haz clic en el siguiente enlace o cópialo en tu navegador:\n\n${recoveryLink}\n\n Una vez restablescas tu contraseña puedes ignorar este mensaje de forma segura.\n\nSaludos,\nEl equipo de AppSalon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #C70039;">Tu cuenta ha sido bloqueada, ${name}</h2>
+        <p>Hemos recibido demasiados intentos de iniciar sesión con tu contraseña de tu cuenta asociada con el correo electrónico (${email}) en AppSalon.</p>
+        <p>Si quieres recuperar el acceso a tu cuenta haz click en el link inferior.</p>
+        <p style="text-align: center;">
+          <a href="${recoveryLink}" style="background-color: #5BC0DE; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Restablecer Contraseña</a>
+        </p>
+        <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+        <p><a href="${recoveryLink}">${recoveryLink}</a></p>
+        <p><strong>Mientras tengas acceso a tu email.</strong> Tu cuenta actual permanecerá sin cambios y segura.</p>
+        <hr>
+        <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(emailOptions);
+    console.log(
+      colors.cyan.italic(
+        `📬 Mensaje de recuperación de contraseña enviado a ${email}: ${info.messageId}.`
+      )
+    );
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        `☠️  Error al enviar email de recuperación de contraseña a ${email}: ${error.message}`
+      )
+    );
+    throw error; // Propagar el error para que el controlador lo maneje si es necesario
+  }
+}

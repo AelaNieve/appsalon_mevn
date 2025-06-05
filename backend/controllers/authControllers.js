@@ -7,6 +7,7 @@ import {
   sendEmailVerification,
   sendDeletionConfirmationEmail,
   sendPasswordRecoveryEmail,
+  sendAccountBloquedEmail,
 } from "../emails/authEmailService.js";
 
 /**
@@ -131,7 +132,7 @@ const validatePassword = async (password) => {
   if (isCommonPattern(password)) {
     return {
       isValid: false,
-      message: "Esa contraseña es demasiado común. Prueba algo más original.",
+      message: "Esa contraseña tiene un patron demasiado comun",
     };
   }
 
@@ -159,6 +160,10 @@ const register = async (req, res) => {
       .json({ msg: "Todos los campos son obligatorios, ¡no seas tímido!" });
   }
 
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    //console.log(.yellow("Esa mamada de email que es?: ", email));
+    return res.status(400).json({ msg: "El email no es valido." });
+  }
   // Validar que la contraseña sea segura
   const passwordValidationResult = await validatePassword(password);
   if (!passwordValidationResult.isValid) {
@@ -166,14 +171,14 @@ const register = async (req, res) => {
   }
 
   try {
-    const commonError = new Error(
-      "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!"
-    );
+    const commonResponse =
+      "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!";
+
     //  Verificar si el usuario ya existe.
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       //console.log(colors.yellow(`☠️  El email no fue encontrado en la base de datos ${email}`));
-      return res.status(409).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonResponse });
     }
 
     // Hashear la contraseña antes de guardarla.
@@ -188,7 +193,6 @@ const register = async (req, res) => {
     });
 
     await user.save();
-
     // Enviar email de verificación.
     try {
       await sendEmailVerification({
@@ -204,6 +208,8 @@ const register = async (req, res) => {
       );
       return res.status(201).json({ msg: emailError.message });
     }
+    // console.log(`Registro de nuevo usuario exitoso ${user}.`);
+    return res.status(200).json({ msg: commonResponse });
   } catch (error) {
     console.error(
       colors.red.bold(
@@ -220,20 +226,19 @@ const register = async (req, res) => {
 const verifyAccount = async (req, res) => {
   const { token } = req.params;
   try {
-    commonError = new Error(
-      "Fallo la verficación quizas el token ya no existe (Borra tu cuenta) o la cuenta ya fue verificada."
-    );
+    const commonError =
+      "Fallo la verficación quizas el token ya no existe (Borra tu cuenta) o la cuenta ya fue verificada.";
     const user = await User.findOne({ token });
     if (!user) {
       //console.error(colors.red.bold(`☠️ No se encontro el token: ${token}`));
-      return res.status(401).json({ msg: commonError.message });
+      return res.status(401).json({ msg: commonError });
     }
 
     user.verified = true;
     user.token = "";
     await user.save();
     //console.error(colors.green.bold(`Exito en la creación de: ${user.name}`));
-    return res.json({
+    return res.status(200).json({
       msg: "¡Cuenta confirmada con éxito! Ahora sí, ¡a disfrutar!",
     });
   } catch (error) {
@@ -258,24 +263,52 @@ const login = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    const commonError = new Error("Email o contraseña incorrectos");
+    const commonError =
+      "La contraseña es incorrecta o el email no es valido o la cuenta no ha sido verificada o ha sido bloqueada revisa tu correo";
     if (!user) {
       //console.error(colors.red.bold(`☠️  No se encontro el email: ${email}`));
-      return res.status(401).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
+    }
+
+    if (!user.verified) {
+      //console.error(colors.red.bold(`Cuenta No verificada: ${user.name}`));
+      return res.status(401).json({ msg: commonError });
+    }
+
+    if (user.passwordAttems > 6) {
+      //console.error(colors.red.bold(`Demasiados intentos de iniciar sesión: ${user.name}`));
+      return res.status(400).json({
+        msg: commonError,
+      });
+    }
+
+    if (user.passwordAttems == 6) {
+      try {
+        sendAccountBloquedEmail({
+          name: user.name,
+          email: user.email,
+        });
+        console.error(
+          colors.blue.bold(`Email de cuenta bloqueada enviado: ${user.name}`)
+        );
+      } catch (error) {
+        console.error(
+          colors.red.bold(`Error de sendAccountBloquedEmail: ${error.message}`)
+        );
+      }
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       //console.error(colors.red.bold(`☠️  Contraseña incorrecta en isPasswordCorrect ${user.password}`));
-      return res.status(401).json({ msg: commonError.message });
+      user.passwordAttems = user.passwordAttems + 1;
+      user.save();
+      return res.status(401).json({ msg: commonError });
     }
 
-    if (!user.verified) {
-      //console.error(colors.red.bold(`Cuenta No verificada: ${user.name}`));
-      return res.status(401).json({
-        msg: "Tu cuenta aún no ha sido verificada. ¡Revisa tu email y confirma tu identidad, mier..!",
-      });
-    }
+    user.passwordAttems = 0;
+    user.save();
+
     return res.status(200).json({
       //console.error(colors.green.bold(`Sesión Iniciada ${user.name}`));
       msg: "¡Inicio de sesión exitoso! Qué alegría verte de nuevo por AppSalon.",
@@ -295,18 +328,20 @@ const login = async (req, res) => {
 // Controlador para solicitar eliminación de cuenta
 const requestAccountDeletion = async (req, res) => {
   const { email } = req.body;
+
   // testeo rapido del email
   if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
-    return res.status(400).json({ msg: "El email no es valido." });
+    //console.log(.yellow("Esa mamada de email que es?: ", email));
+    return res.status(401).json({ msg: "El email no es valido." });
   }
   try {
     const user = await User.findOne({ email });
-    commonError = new Error(
-      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta."
-    );
+    const commonError =
+      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta.";
+
     if (!user) {
       //console.log(colors.blue.bold("Solicitud de eliminación para email no registrado:", email));
-      return res.status(200).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
     // Se elimina directamente la cuenta si no estaba verificada
     if (!user.verified) {
@@ -323,7 +358,7 @@ const requestAccountDeletion = async (req, res) => {
       user.deleteTokenExpires > Date.now()
     ) {
       //console.log(colors.yellow(`Ya existe una solicitud activa de eliminación para ${email}.`));
-      return res.status(400).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
     // Creamos un token y lo subimos al schema
     const tempToken = uniqueId();
@@ -342,7 +377,7 @@ const requestAccountDeletion = async (req, res) => {
         `Enlace de confirmación para eliminar cuenta enviado a ${email}.`
       )
     );
-    return res.status(200).json({ msg: commonError.message });
+    return res.status(200).json({ msg: commonError });
   } catch (error) {
     console.error(
       colors.red.bold(`☠️  Error en requestAccountDeletion: ${error.message}`)
@@ -358,22 +393,21 @@ const confirmAccountDeletion = async (req, res) => {
   const { deleteToken } = req.params;
 
   try {
-    commonError = new Error(
-      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta."
-    );
+    const commonError =
+      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta.";
     const deletionUser = await User.findOne({ deleteToken });
 
     if (!deletionUser) {
       //console.log(colors.yellow(`No se encontro usuario con: ${deleteToken}.`));
-      return res.status(401).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
     const expiredUser = deletionUser.deleteTokenExpires;
     if (expiredUser < Date.now()) {
       deletionUser.deleteToken = "";
-      deletionUser.deleteTokenExpires = "";
+      deletionUser.deleteTokenExpires = null;
       await deletionUser.save();
       //console.log(colors.yellow(`Token de eliminación expirado para ${deleteToken}.`));
-      return res.status(401).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
     await User.deleteOne({ _id: deletionUser._id });
     //console.log(colors.green(`Cuenta eliminada con éxito: ${deletionUser.email}`));
@@ -391,20 +425,20 @@ const confirmAccountDeletion = async (req, res) => {
 // Controlador para solicitar reseteo de contraseña
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
+  //console.log(email);
   if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
-    //console.log(.yellow("Esa mamada de email que es?: ", email));
+    //console.log(colors.yellow("Esa mamada de email que es?: ", email));
     return res.status(200).json({ msg: "El email no es valido." });
   }
 
   try {
     const user = await User.findOne({ email });
-    commonError = new Error(
-      "Si una cuenta con ese email existe y está verificada, se enviará un enlace de recuperación, revise su bandeja de entrada y spam. El enlace es válido por 1 hora."
-    );
+    const commonError =
+      "Si una cuenta con ese email existe y está verificada, se enviará un enlace de recuperación, revise su bandeja de entrada y spam. El enlace es válido por 1 hora.";
 
     if (!user) {
       //console.log(colors.blue(`Solicitud de olvido de contraseña para email no registrado: ${email}`));
-      return res.status(200).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
 
     if (!user.verified) {
@@ -422,7 +456,7 @@ const forgotPassword = async (req, res) => {
       user.passwordResetTokenExpires > Date.now()
     ) {
       //console.log(colors.blue(`Ya existe un token de recuperación activo para: ${email}.`));
-      return res.status(200).json({ msg: commonError.message });
+      return res.status(200).json({ msg: commonError });
     }
 
     const resetToken = uniqueId();
@@ -441,7 +475,7 @@ const forgotPassword = async (req, res) => {
         `Email de recuperación de contraseña enviado a ${email}.`
       )
     );
-    return res.status(200).json({ msg: commonError.message });
+    return res.status(200).json({ msg: commonError });
   } catch (error) {
     console.error(
       colors.red.bold(
@@ -465,22 +499,22 @@ const resetPassword = async (req, res) => {
 
   try {
     const userResetPasword = await User.findOne({ passwordResetToken });
-    commonError = new Error(
-      "El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicite uno nuevo."
-    );
+    const commonError =
+      "El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicite uno nuevo.";
     if (!userResetPasword) {
       //console.log(colors.yellow(`No se encontro usuario con: ${passwordResetToken}, ${userResetPasword}.`));
-      return res.status(401).json({ msg: commonError.msg });
+      return res.status(200).json({ msg: commonError });
     }
     // Consiguiendo la fecha y hora de creación de la petición de resetear contraseña
     const expiredUser = userResetPasword.passwordResetTokenExpires;
     // Si la hora para verificar ya paso se resetea la variable
     if (expiredUser < Date.now()) {
       userResetPasword.passwordResetToken = "";
-      userResetPasword.passwordResetTokenExpires = "";
+      userResetPasword.passwordResetTokenExpires = null;
+      userResetPasword.passwordAttems = 0;
       await deletionUser.save();
       //console.log(colors.yellow(`EL link para cambiar contraseña expirado para ${user.name}.`));
-      return res.status(401).json({ msg: commonError.msg });
+      return res.status(200).json({ msg: commonError });
     }
 
     //verificando si la nueva contraseña es segura
