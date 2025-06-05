@@ -22,7 +22,7 @@ app.set("trust proxy", 1);
 app.use(express.json());
 
 // Conectar a la base de datos.
-db();
+await db();
 
 // Configuración de CORS. esta me hizo sufrir
 const whitelist = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
