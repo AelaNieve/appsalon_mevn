@@ -1,6 +1,6 @@
 import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
-import { validateMailtrapConfig } from "../helpers/errorHandeling.js";
+import { validateMailtrapConfig } from "../helpers/errorHandling.js";
 
 export async function sendEmailVerification({ name, email, token }) {
   let mailtrapConfig;
@@ -112,5 +112,64 @@ export async function sendDeletionConfirmationEmail({ name, email, token }) {
       )
     );
     throw error;
+  }
+}
+
+export async function sendPasswordRecoveryEmail({ name, email, token }) {
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error(
+      "Mailtrap configuration missing for password recovery email."
+    );
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
+
+  // Asegúrate que la URL del frontend sea la correcta para el reseteo de contraseña
+  const recoveryLink = `${process.env.FRONTEND_URL}/auth/reset-password/${token}`;
+
+  const emailOptions = {
+    from: '"AppSalon Co." <no-reply@appsalon.com>',
+    to: email,
+    subject: "🔑 Recuperación de Contraseña en AppSalon 🔑",
+    text: `¡Hola ${name}!\n\nHemos recibido una solicitud para restablecer la contraseña de tu cuenta en AppSalon.\n\nPara restablecer tu contraseña, por favor haz clic en el siguiente enlace o cópialo en tu navegador:\n\n${recoveryLink}\n\nEste enlace es válido por 1 hora. Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje de forma segura.\n\nSaludos,\nEl equipo de AppSalon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #C70039;">Solicitud de Recuperación de Contraseña, ${name}</h2>
+        <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta asociada con el correo electrónico (${email}) en AppSalon.</p>
+        <p>Si tú iniciaste esta solicitud, haz clic en el botón de abajo para establecer una nueva contraseña. Este enlace es válido por 1 hora.</p>
+        <p style="text-align: center;">
+          <a href="${recoveryLink}" style="background-color: #5BC0DE; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Restablecer Contraseña</a>
+        </p>
+        <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+        <p><a href="${recoveryLink}">${recoveryLink}</a></p>
+        <p><strong>Si tú NO solicitaste un restablecimiento de contraseña, por favor ignora este correo.</strong> Tu contraseña actual permanecerá sin cambios y tu cuenta segura.</p>
+        <hr>
+        <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(emailOptions);
+    console.log(
+      colors.cyan.italic(
+        `📬 Mensaje de recuperación de contraseña enviado a ${email}: ${info.messageId}.`
+      )
+    );
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        `☠️  Error al enviar email de recuperación de contraseña a ${email}: ${error.message}`
+      )
+    );
+    throw error; // Propagar el error para que el controlador lo maneje si es necesario
   }
 }

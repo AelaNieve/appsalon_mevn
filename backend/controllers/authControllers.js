@@ -1,185 +1,195 @@
 import User from "../models/user.js";
-import { uniqueId } from "../helpers/errorHandeling.js";
+import { uniqueId } from "../helpers/errorHandling.js";
 import bcrypt from "bcryptjs";
 import colors from "colors";
+import { createHash } from "node:crypto";
 import {
   sendEmailVerification,
   sendDeletionConfirmationEmail,
-} from "../emails/authEmailService.js"; // Import the new email service function
-import { createHash } from "node:crypto";
+  sendPasswordRecoveryEmail,
+} from "../emails/authEmailService.js";
 
-const commonPatternsString = process.env.COMMON_PASSWORD_PATTERNS || "";
-const commonPatterns = commonPatternsString
-  .split(",")
-  .map((pattern) => pattern.trim())
-  .filter((pattern) => pattern.length > 0);
+/**
+ * Valida una contraseña según los criterios definidos.
+ * @param {string} password - La contraseña a validar.
+ * @returns {Promise<{isValid: boolean, message: string|null}>} - Objeto con estado de validez y mensaje de error si no es válida.
+ */
+const validatePassword = async (password) => {
+  // Chequea por patrones comunes dentro de las contraseñas, información en el .env
+  const commonPatternsString = process.env.COMMON_PASSWORD_PATTERNS || "";
+  const commonPatterns = commonPatternsString
+    .split(",")
+    .map((pattern) => pattern.trim())
+    .filter((pattern) => pattern.length > 0);
 
-// Constantes para validación de contraseña, apuesto que los usuarios las van a olvidar antes de que sean hackeadas
-const MIN_PASSWORD_LENGTH = 16;
-const HAS_UPPERCASE_REGEX = /[A-Z]/;
-const HAS_LOWERCASE_REGEX = /[a-z]/;
-const HAS_NUMBER_REGEX = /[0-9]/;
-const HAS_SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
-const REPEATING_CHARS_REGEX = /(.)\1{3,}/; // 4 o más caracteres repetidos
-const SIMPLE_NUMBER_SEQUENCES_REGEX =
-  /123|234|345|456|567|678|789|890|098|987|876|765|654|543|432|321/;
-const SIMPLE_ALPHABET_SEQUENCES_REGEX =
-  /abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i; // 'i' para ignorar mayúsculas/minúsculas
+  // Constantes para validación de contraseña
+  const MIN_PASSWORD_LENGTH = 16;
+  const HAS_UPPERCASE_REGEX = /[A-Z]/;
+  const HAS_LOWERCASE_REGEX = /[a-z]/;
+  const HAS_NUMBER_REGEX = /[0-9]/;
+  const HAS_SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
+  const REPEATING_CHARS_REGEX = /(.)\1{3,}/; // regex que chekea si hay más de 3 caracteres repetidos
+  const SIMPLE_NUMBER_SEQUENCES_REGEX =
+    /123|234|345|456|567|678|789|890|098|987|876|765|654|543|432|321/; // regex que chekea si hay 3 numeros secuenciales
+  const SIMPLE_ALPHABET_SEQUENCES_REGEX =
+    /abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i; // regex que chekea si hay 3 letras secuenciales
 
-// Función para verificar contra patrones comunes de contraseñas, ¡que no te jalen las patas con "Contraseña123456!"
-const isCommonPattern = (password) => {
-  const lowerPassword = password.toLowerCase();
-  for (const pattern of commonPatterns) {
-    if (lowerPassword.includes(pattern)) {
-      return true;
+  // Función para verificar contra patrones comunes de contraseñas
+  const isCommonPattern = (pwd) => {
+    const lowerPassword = pwd.toLowerCase();
+    for (const pattern of commonPatterns) {
+      if (lowerPassword.includes(pattern)) {
+        return true;
+      }
     }
-  }
-
-  // Verificar secuencias simples o caracteres repetidos.
-  if (REPEATING_CHARS_REGEX.test(password)) return true;
-  if (SIMPLE_NUMBER_SEQUENCES_REGEX.test(password)) return true;
-  if (SIMPLE_ALPHABET_SEQUENCES_REGEX.test(lowerPassword)) return true;
-
-  return false;
-};
-
-// Función para calcular el hash SHA-1 (usando el módulo crypto de Node.js)
-// Necesario para la API de HaveIBeenPwned, a ver si tu contraseña es publica
-const sha1 = async (message) => {
-  const hash = createHash("sha1");
-  hash.update(message);
-  return hash.digest("hex");
-};
-
-// Función para checar si la contraseña está en una base de datos pública (usando la API de HaveIBeenPwned)
-// Ojo: Si la API falla, mejor tener un usuario con contraseña insegura que no tener usuario
-const isPwnedPassword = async (password) => {
-  try {
-    const digest = await sha1(password);
-    const prefix = digest.substring(0, 5);
-    const suffix = digest.substring(5).toUpperCase();
-
-    const response = await fetch(
-      `https://api.pwnedpasswords.com/range/${prefix}`
-    );
-    if (!response.ok) {
-      console.error(
-        `Falló la revisión de contraseñas pwned (API): ${response.status} ${response.statusText}. Se permite la contraseña por precaución.`
-      );
-      return false; // Es más seguro permitirla si la API falla
-    }
-
-    const text = await response.text();
-    const hashes = text.split("\r\n");
-
-    // Buscamos si nuestro sufijo de hash está en la lista de la API
-    const found = hashes.some((line) => {
-      const [hashSuffix] = line.split(":");
-      return hashSuffix.toUpperCase() === suffix;
-    });
-
-    return found;
-  } catch (error) {
-    console.error(
-      "Error al verificar con PwnedPasswords (excepción):",
-      error.message,
-      "Se permite la contraseña por precaución."
-    );
-    // En caso de error (ej. de red), tratamos como no "pwned" para no bloquear usuarios innecesariamente.
+    // Uses regex constants from validatePassword's scope
+    if (REPEATING_CHARS_REGEX.test(pwd)) return true;
+    if (SIMPLE_NUMBER_SEQUENCES_REGEX.test(pwd)) return true;
+    if (SIMPLE_ALPHABET_SEQUENCES_REGEX.test(lowerPassword)) return true;
     return false;
+  };
+
+  // Función para calcular el hash SHA-1 (Toma la información de la base de datos de contraseñas publicas)
+  const sha1 = async (message) => {
+    const hash = createHash("sha1");
+    hash.update(message);
+    return hash.digest("hex");
+  };
+
+  // Función para checar si la contraseña está en una base de datos pública
+  const isPwnedPassword = async (pwdToCheck) => {
+    try {
+      const digest = await sha1(pwdToCheck);
+      const prefix = digest.substring(0, 5);
+      const suffix = digest.substring(5).toUpperCase();
+
+      const response = await fetch(
+        // Base de datos de contraseñas filtradas
+        `https://api.pwnedpasswords.com/range/${prefix}`
+      );
+      if (!response.ok) {
+        console.error(
+          colors.yellow(
+            `⚠️ Falló la revisión de contraseñas pwned (API): ${response.status} ${response.statusText}. Se permite la contraseña por precaución.`
+          )
+        );
+        return false; // Es más seguro permitirla si la API falla
+      }
+
+      const text = await response.text();
+      const hashes = text.split("\r\n");
+
+      const found = hashes.some((line) => {
+        const [hashSuffix] = line.split(":");
+        return hashSuffix.toUpperCase() === suffix;
+      });
+
+      return found;
+    } catch (error) {
+      console.error(
+        colors.yellow(
+          `⚠️ Error al verificar con PwnedPasswords (excepción): ${error.message}. Se permite la contraseña por precaución.`
+        )
+      );
+      return false;
+    }
+  };
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      isValid: false,
+      message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+    };
   }
+  if (!HAS_UPPERCASE_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos una letra mayúscula.",
+    };
+  }
+  if (!HAS_LOWERCASE_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos una letra minúscula.",
+    };
+  }
+  if (!HAS_NUMBER_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos un número.",
+    };
+  }
+  if (!HAS_SPECIAL_CHAR_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message:
+        "La contraseña necesita al menos un carácter especial (ej. !@#$%).",
+    };
+  }
+
+  // verificando si la contraseña no tiene patrones comunes
+  if (isCommonPattern(password)) {
+    return {
+      isValid: false,
+      message: "Esa contraseña es demasiado común. Prueba algo más original.",
+    };
+  }
+
+  // Revisión de contraseña "pwned" (asíncrona)
+  const pwned = await isPwnedPassword(password);
+  if (pwned) {
+    return {
+      isValid: false,
+      message:
+        "Esta contraseña ha aparecido en filtraciones de datos y no es segura. Por favor, elige otra.",
+    };
+  }
+
+  return { isValid: true, message: null };
 };
 
 // Controlador para el registro de usuarios
 const register = async (req, res) => {
   const { name, email, password } = req.body;
 
-  // 1. Validación básica antes de los calculos más "pesados"
+  // Validación básica de campos obligatorios
   if ([name, email, password].some((field) => !field || field.trim() === "")) {
-    // Checa undefined, null, o string vacío
-    const error = new Error(
-      "Todos los campos son obligatorios, ¡no seas tímido!"
+    return res
+      .status(400)
+      .json({ msg: "Todos los campos son obligatorios, ¡no seas tímido!" });
+  }
+
+  // Validar que la contraseña sea segura
+  const passwordValidationResult = await validatePassword(password);
+  if (!passwordValidationResult.isValid) {
+    return res.status(400).json({ msg: passwordValidationResult.message });
+  }
+
+  try {
+    const commonError = new Error(
+      "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!"
     );
-    return res.status(400).json({ msg: error.message });
-  }
-
-  // 2. Aquí nos ponemos serios
-  const passwordValidationChecks = [
-    {
-      check: password.length < MIN_PASSWORD_LENGTH,
-      message: `La tienes demasiado corta... la contraseña... el minimo es ${MIN_PASSWORD_LENGTH} caracteres.`,
-    },
-    {
-      check: !HAS_UPPERCASE_REGEX.test(password),
-      message:
-        "La contraseña necesita al menos una letra mayúscula o sino ta muy infantil",
-    },
-    {
-      check: !HAS_LOWERCASE_REGEX.test(password),
-      message: "Incluye alguna minúscula o tara muy caza tumbas",
-    },
-    {
-      check: !HAS_NUMBER_REGEX.test(password),
-      message: "Mmmm no se que comentario poner, añade un numero",
-    },
-    {
-      check: !HAS_SPECIAL_CHAR_REGEX.test(password),
-      message:
-        "Un carácter especial (ej. !@#$%) para despistar a los malos, ¡como un ninja!",
-    },
-    {
-      check: isCommonPattern(password),
-      message:
-        "Esa contraseña es más común que el pan. Prueba algo más original",
-    },
-  ];
-
-  for (const validation of passwordValidationChecks) {
-    if (validation.check) {
-      return res.status(400).json({ msg: validation.message });
-    }
-  }
-
-  // 3. Revisión de contraseña "pwned". sirve para no poner contraseñas de uso publico
-  try {
-    const pwned = await isPwnedPassword(password);
-    if (pwned) {
-      const error = new Error(
-        "¡Houston, tenemos un problema! Esta contraseña es de uso publico."
-      );
-      return res.status(400).json({ msg: error.message });
-    }
-  } catch (apiError) {
-    // No es necesario hacer nada más aquí, la función devuelve false en caso de error.
-  }
-
-  try {
-    // 4. Verificar si el usuario ya existe. ¿Eres tú de nuevo?
+    //  Verificar si el usuario ya existe.
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const error = new Error(
-        "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!"
-      );
-      console.log(
-        "Este correo ya está registrado. ¿Se te olvidó que ya tenías cuenta?"
-      );
-      return res.status(409).json({ msg: error.message }); // 409 Conflict
+      //console.log(colors.yellow(`☠️  El email no fue encontrado en la base de datos ${email}`));
+      return res.status(409).json({ msg: commonError.message });
     }
 
-    // 5. Hashear la contraseña antes de guardarla. Ni los admins sabran la contraseña
+    // Hashear la contraseña antes de guardarla.
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Creando nuevo schema de usuario
     const user = new User({
       name,
       email,
-      password: hashedPassword, // Guardar la contraseña hasheada
+      password: hashedPassword,
     });
-    // El token se genera automáticamente por el modelo gracias al default.
 
     await user.save();
 
-    // 6. Enviar email de verificación. ¡Confirma que eres tú y no un impostor!
+    // Enviar email de verificación.
     try {
       await sendEmailVerification({
         name: user.name,
@@ -189,19 +199,15 @@ const register = async (req, res) => {
     } catch (emailError) {
       console.error(
         colors.red.bold(
-          `☠️   Falló el envío de email de verificación para ${user.email}: ${emailError.message}`
+          `☠️  Falló la función sendEmailVerification de: ${user.email}, error ${emailError.message}`
         )
       );
-      // Podemos querer notificar al usuario que tiene un problema el email para recibir correos
+      return res.status(201).json({ msg: emailError.message });
     }
-
-    return res.status(201).json({
-      msg: "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!",
-    });
   } catch (error) {
     console.error(
       colors.red.bold(
-        `☠️   Error en el servidor durante el registro: ${error.message}`
+        `☠️  Error en la funcion register durante el registro: ${error.message}`
       )
     );
     return res.status(500).json({
@@ -213,26 +219,26 @@ const register = async (req, res) => {
 // Controlador para verificar la cuenta
 const verifyAccount = async (req, res) => {
   const { token } = req.params;
-
-  // Buscamos al usuario por el token.
-  const user = await User.findOne({ token });
-  if (!user) {
-    const error = new Error(
-      "Token no válido o ya expiró. Parece que este conjuro ya no funciona."
-    );
-    return res.status(401).json({ msg: error.message });
-  }
-
   try {
+    commonError = new Error(
+      "Fallo la verficación quizas el token ya no existe (Borra tu cuenta) o la cuenta ya fue verificada."
+    );
+    const user = await User.findOne({ token });
+    if (!user) {
+      //console.error(colors.red.bold(`☠️ No se encontro el token: ${token}`));
+      return res.status(401).json({ msg: commonError.message });
+    }
+
     user.verified = true;
-    user.token = ""; // si no se limpian los tockens alguien podria registrar cuentas sin validación
+    user.token = "";
     await user.save();
-    res.json({ msg: "¡Cuenta confirmada con éxito! Ahora sí, ¡a disfrutar!" });
+    //console.error(colors.green.bold(`Exito en la creación de: ${user.name}`));
+    return res.json({
+      msg: "¡Cuenta confirmada con éxito! Ahora sí, ¡a disfrutar!",
+    });
   } catch (error) {
     console.error(
-      colors.red.bold(
-        `☠️   Error al guardar usuario verificado: ${error.message}`
-      )
+      colors.red.bold(`☠️  Error en verifyAccount: ${error.message}`)
     );
     res
       .status(500)
@@ -244,48 +250,40 @@ const verifyAccount = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  // 1. Validar que email y password no estén vacíos
   if (!email || !password) {
-    const error = new Error("De verdad acabas de enviar un espacio vacio?");
-    return res.status(400).json({ msg: error.message });
+    return res
+      .status(400)
+      .json({ msg: "De verdad acabas de enviar un espacio vacio?" });
   }
 
   try {
-    // 2. Checar si el usuario existe.
     const user = await User.findOne({ email });
+    const commonError = new Error("Email o contraseña incorrectos");
     if (!user) {
-      const error = new Error(
-        "Usuario no encontrado. ¿Seguro que te registraste con este correo?"
-      );
-      return res.status(401).json({ msg: error.message });
+      //console.error(colors.red.bold(`☠️  No se encontro el email: ${email}`));
+      return res.status(401).json({ msg: commonError.message });
     }
 
-    // 3. Checar si la cuenta está verificada.
-    if (!user.verified) {
-      const error = new Error(
-        "Tu cuenta aún no ha sido verificada. ¡Revisa tu email y confirma tu identidad, mier..!"
-      );
-      return res.status(401).json({ msg: error.message });
-    }
-
-    // 4. Verificar la contraseña.
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      const error = new Error(
-        "Contraseña incorrecta. ¿Seguro que es la tuya o estás intentando hackear a la abuela?"
-      );
-      return res.status(401).json({ msg: error.message });
+      //console.error(colors.red.bold(`☠️  Contraseña incorrecta en isPasswordCorrect ${user.password}`));
+      return res.status(401).json({ msg: commonError.message });
     }
 
-    // Si todo está bien, ¡bienvenido de vuelta!
-
+    if (!user.verified) {
+      //console.error(colors.red.bold(`Cuenta No verificada: ${user.name}`));
+      return res.status(401).json({
+        msg: "Tu cuenta aún no ha sido verificada. ¡Revisa tu email y confirma tu identidad, mier..!",
+      });
+    }
     return res.status(200).json({
+      //console.error(colors.green.bold(`Sesión Iniciada ${user.name}`));
       msg: "¡Inicio de sesión exitoso! Qué alegría verte de nuevo por AppSalon.",
     });
   } catch (error) {
     console.error(
       colors.red.bold(
-        `☠️   Error en el servidor durante el login: ${error.message}`
+        `☠️  Error en el servidor durante el login: ${error.message}`
       )
     );
     return res.status(500).json({
@@ -294,28 +292,91 @@ const login = async (req, res) => {
   }
 };
 
+// Controlador para solicitar eliminación de cuenta
+const requestAccountDeletion = async (req, res) => {
+  const { email } = req.body;
+  // testeo rapido del email
+  if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).json({ msg: "El email no es valido." });
+  }
+  try {
+    const user = await User.findOne({ email });
+    commonError = new Error(
+      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta."
+    );
+    if (!user) {
+      //console.log(colors.blue.bold("Solicitud de eliminación para email no registrado:", email));
+      return res.status(200).json({ msg: commonError.message });
+    }
+    // Se elimina directamente la cuenta si no estaba verificada
+    if (!user.verified) {
+      await User.deleteOne({ _id: user._id });
+      //console.log(colors.green(`Cuenta no verificada (${email}) eliminada directamente.`));
+      return res
+        .status(200)
+        .json({ msg: "La cuenta no estaba verificada y ha sido eliminada." });
+    }
+    // Verificación que previene spam de la función
+    if (
+      user.deleteToken &&
+      user.deleteTokenExpires &&
+      user.deleteTokenExpires > Date.now()
+    ) {
+      //console.log(colors.yellow(`Ya existe una solicitud activa de eliminación para ${email}.`));
+      return res.status(400).json({ msg: commonError.message });
+    }
+    // Creamos un token y lo subimos al schema
+    const tempToken = uniqueId();
+    user.deleteToken = tempToken;
+    // Tiempo de vida del token 1 hora
+    user.deleteTokenExpires = Date.now() + 3600000;
+    await user.save();
+    // Creamos un objeto y enviamos el email
+    await sendDeletionConfirmationEmail({
+      name: user.name,
+      email: user.email,
+      token: user.deleteToken,
+    });
+    console.log(
+      colors.blue.bold(
+        `Enlace de confirmación para eliminar cuenta enviado a ${email}.`
+      )
+    );
+    return res.status(200).json({ msg: commonError.message });
+  } catch (error) {
+    console.error(
+      colors.red.bold(`☠️  Error en requestAccountDeletion: ${error.message}`)
+    );
+    return res.status(500).json({
+      msg: "Error interno del servidor. No se pudo procesar tu solicitud.",
+    });
+  }
+};
+
+// Controlador para confirmar la eliminación de cuenta
 const confirmAccountDeletion = async (req, res) => {
-  const { deleteToken } = req.params; // Token from URL path
+  const { deleteToken } = req.params;
 
   try {
-    const user = await User.findOne({ deleteToken });
+    commonError = new Error(
+      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta."
+    );
+    const deletionUser = await User.findOne({ deleteToken });
 
-    if (!user) {
-      return res.status(404).json({ msg: "Token no válido o no encontrado." });
+    if (!deletionUser) {
+      //console.log(colors.yellow(`No se encontro usuario con: ${deleteToken}.`));
+      return res.status(401).json({ msg: commonError.message });
     }
-
-    if (!user.deleteTokenExpires || user.deleteTokenExpires < Date.now()) {
-      // Clear the expired token
-      user.deleteToken = null;
-      user.deleteTokenExpires = null;
-      await user.save();
-      return res.status(401).json({
-        msg: "El enlace para borrar la cuenta ha expirado. Por favor, solicite uno nuevo.",
-      });
+    const expiredUser = deletionUser.deleteTokenExpires;
+    if (expiredUser < Date.now()) {
+      deletionUser.deleteToken = "";
+      deletionUser.deleteTokenExpires = "";
+      await deletionUser.save();
+      //console.log(colors.yellow(`Token de eliminación expirado para ${deleteToken}.`));
+      return res.status(401).json({ msg: commonError.message });
     }
-
-    // Token is valid and not expired, proceed with deletion
-    await User.deleteOne({ _id: user._id });
+    await User.deleteOne({ _id: deletionUser._id });
+    //console.log(colors.green(`Cuenta eliminada con éxito: ${deletionUser.email}`));
     return res.status(200).json({ msg: "Cuenta eliminada con éxito." });
   } catch (error) {
     console.error(
@@ -327,72 +388,127 @@ const confirmAccountDeletion = async (req, res) => {
   }
 };
 
-// Renamed from verifyDelete
-const requestAccountDeletion = async (req, res) => {
+// Controlador para solicitar reseteo de contraseña
+const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
-    return res.status(400).json({ msg: "El email no es valido." });
+    //console.log(.yellow("Esa mamada de email que es?: ", email));
+    return res.status(200).json({ msg: "El email no es valido." });
   }
+
   try {
     const user = await User.findOne({ email });
+    commonError = new Error(
+      "Si una cuenta con ese email existe y está verificada, se enviará un enlace de recuperación, revise su bandeja de entrada y spam. El enlace es válido por 1 hora."
+    );
+
     if (!user) {
-      console.log("Usuario no existe");
-      return res.status(200).json({
-        msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
-      });
+      //console.log(colors.blue(`Solicitud de olvido de contraseña para email no registrado: ${email}`));
+      return res.status(200).json({ msg: commonError.message });
     }
 
-    // In requestAccountDeletion (formerly verifyDelete), after finding the user:
     if (!user.verified) {
+      //console.log(colors.yellow(`Cuenta no verificada (${email}) encontrada en forgotPassword. Eliminando.`));
       await User.deleteOne({ _id: user._id });
       return res
         .status(200)
         .json({ msg: "La cuenta no estaba verificada y ha sido eliminada." });
     }
-    // ... then proceed with token generation and email for verified users
 
-    // Check if a valid token already exists (as implemented in point 1)
+    // checkeo para evitar stamp de la funcion
     if (
-      user.deleteToken &&
-      user.deleteTokenExpires &&
-      user.deleteTokenExpires > Date.now()
+      user.passwordResetToken &&
+      user.passwordResetTokenExpires &&
+      user.passwordResetTokenExpires > Date.now()
     ) {
-      console.log("Ya existe una solicitud activa. Revise su correo.");
-      return res.status(400).json({
-        msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
-      });
+      //console.log(colors.blue(`Ya existe un token de recuperación activo para: ${email}.`));
+      return res.status(200).json({ msg: commonError.message });
     }
 
-    // Generate token, set expiry, save user
-    const tempToken = uniqueId();
-    user.deleteToken = tempToken;
-    user.deleteTokenExpires = Date.now() + 3600000; // 1 hour
+    const resetToken = uniqueId();
+    user.passwordResetToken = resetToken;
+    user.passwordResetTokenExpires = Date.now() + 3600000; // Token válido por 1 hora
+
     await user.save();
 
-    // Send deletion confirmation email
-    await sendDeletionConfirmationEmail({
+    await sendPasswordRecoveryEmail({
       name: user.name,
       email: user.email,
-      token: user.deleteToken, // Use the new token
+      token: resetToken,
     });
-    console.log("Enlace de confirmación para eliminar cuenta enviado.");
-    return res.status(200).json({
-      msg: "Si la cuenta existe, el link para borar cuenta y fue enviado.",
-    });
+    console.log(
+      colors.blue.bold(
+        `Email de recuperación de contraseña enviado a ${email}.`
+      )
+    );
+    return res.status(200).json({ msg: commonError.message });
   } catch (error) {
     console.error(
       colors.red.bold(
-        // Consider a more specific name if you rename the function later
-        `☠️  Error in requestAccountDeletion (requesting deletion) controller: ${error.message}`
+        `☠️  Error en forgotPassword controller: ${error.message}`
       )
     );
     return res.status(500).json({
-      msg: "Error interno del servidor. No se pudo procesar tu solicitud en este momento.",
+      msg: "Error interno del servidor. No se pudo procesar tu solicitud.",
     });
   }
 };
 
-// New controller function to confirm and execute account deletion
+// Controlador para verificar el token y cambiar la contraseña
+const resetPassword = async (req, res) => {
+  const { password, passwordResetToken } = req.body;
+  //console.log("contraseña ", password, "token ", passwordResetToken);
+
+  if (!password || password.trim() === "") {
+    return res.status(400).json({ msg: "La nueva contraseña es obligatoria." });
+  }
+
+  try {
+    const userResetPasword = await User.findOne({ passwordResetToken });
+    commonError = new Error(
+      "El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicite uno nuevo."
+    );
+    if (!userResetPasword) {
+      //console.log(colors.yellow(`No se encontro usuario con: ${passwordResetToken}, ${userResetPasword}.`));
+      return res.status(401).json({ msg: commonError.msg });
+    }
+    // Consiguiendo la fecha y hora de creación de la petición de resetear contraseña
+    const expiredUser = userResetPasword.passwordResetTokenExpires;
+    // Si la hora para verificar ya paso se resetea la variable
+    if (expiredUser < Date.now()) {
+      userResetPasword.passwordResetToken = "";
+      userResetPasword.passwordResetTokenExpires = "";
+      await deletionUser.save();
+      //console.log(colors.yellow(`EL link para cambiar contraseña expirado para ${user.name}.`));
+      return res.status(401).json({ msg: commonError.msg });
+    }
+
+    //verificando si la nueva contraseña es segura
+    const passwordValidationResult = await validatePassword(password);
+    if (!passwordValidationResult.isValid) {
+      return res.status(400).json({ msg: passwordValidationResult.message });
+    }
+    // Haseado la contraseña
+    const salt = await bcrypt.genSalt(10);
+    userResetPasword.password = await bcrypt.hash(password, salt);
+    // Reseteando los tokens para la validación para cambiar la contraseña
+    userResetPasword.passwordResetToken = "";
+    userResetPasword.passwordResetTokenExpires = "";
+
+    await userResetPasword.save();
+    // console.log(colors.green(`Contraseña actualizada con éxito para ${userResetPasword.email}.`));
+    return res.status(200).json({
+      msg: "Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
+    });
+  } catch (error) {
+    console.error(
+      colors.red.bold(`☠️  Error en resetPassword controller: ${error.message}`)
+    );
+    return res.status(500).json({
+      msg: "Error interno del servidor al intentar cambiar la contraseña.",
+    });
+  }
+};
 
 export {
   register,
@@ -400,4 +516,6 @@ export {
   login,
   requestAccountDeletion,
   confirmAccountDeletion,
+  forgotPassword,
+  resetPassword,
 };

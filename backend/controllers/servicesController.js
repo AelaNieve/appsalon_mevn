@@ -4,7 +4,7 @@ import {
   isValidObjectId,
   handleNotFoundError,
   serviceExists,
-} from "../helpers/errorHandeling.js";
+} from "../helpers/errorHandling.js";
 
 // Aquí revisamos si el ID es de verdad y si el servicio existe.
 const findServiceByIdMiddleware = async (req, res, next) => {

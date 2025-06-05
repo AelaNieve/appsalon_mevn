@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { uniqueId } from "../helpers/errorHandeling.js"; // Asegúrate que la ruta sea correcta si mueves/renombras helpers
+import { uniqueId } from "../helpers/errorHandling.js"; // Asegúrate que la ruta sea correcta si mueves/renombras helpers
 
 // Esquema para el Usuario
 const userSchema = mongoose.Schema(
@@ -36,7 +36,9 @@ const userSchema = mongoose.Schema(
       default: () => uniqueId(), // Genera un token único al crear para validar al usuario y luego sera borrado
     },
     deleteToken: { type: String },
+    passwordResetToken: { type: String },
     deleteTokenExpires: { type: Date },
+    passwordResetTokenExpires: { type: Date },
     verified: {
       type: Boolean,
       default: false, // Empieza sin verificar.
