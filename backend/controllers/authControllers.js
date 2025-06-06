@@ -298,61 +298,55 @@ const login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     const commonError =
-      "La contraseña es incorrecta o el email no es valido o la cuenta no ha sido verificada o ha sido bloqueada revisa tu correo";
-    if (!user) {
-      //console.error(colors.red.bold(`☠️  No se encontro el email: ${email}`));
-      return res.status(200).json({ msg: commonError });
-    }
+      "La contraseña es incorrecta tienes un numero limitado de intentos o el email no es valido o la cuenta no ha sido verificada o ha sido bloqueada revisa tu correo";
 
-    if (!user.verified) {
-      //console.error(colors.red.bold(`Cuenta No verificada: ${user.name}`));
+    if (!user || !user.verified) {
       return res.status(401).json({ msg: commonError });
     }
 
-    if (user.passwordAttempts > 6) {
-      //console.error(colors.red.bold(`Demasiados intentos de iniciar sesión: ${user.name}`));
-      return res.status(400).json({
-        msg: commonError,
+    // 1. Primero, comprueba si la cuenta ya está bloqueada
+    if (user.passwordAttempts && user.passwordAttempts >= 6) {
+      return res.status(401).json({ msg: commonError });
+    }
+
+    // 2. Compara la contraseña
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    // 3. Si la contraseña es CORRECTA
+    if (isPasswordCorrect) {
+      // Restablece los intentos a 0 y guarda
+      user.passwordAttempts = 0;
+      await user.save();
+
+      //console.log(colors.green.bold(`Sesión Iniciada ${user.name}`));
+      return res.status(200).json({
+        msg: "¡Inicio de sesión exitoso! Qué alegría verte de nuevo por AppSalon.",
       });
     }
 
-    if (user.passwordAttempts == 6) {
+    // 4. Si la contraseña es INCORRECTA
+    // Inicializa el contador si no existe y luego lo incrementa
+    user.passwordAttempts = (user.passwordAttempts || 0) + 1;
+
+    // Comprueba si este intento bloquea la cuenta
+    if (user.passwordAttempts === 6) {
       try {
         sendAccountBlockedEmail({
           name: user.name,
           email: user.email,
         });
-        console.error(
-          colors.blue.bold(`Email de cuenta bloqueada enviado: ${user.name}`)
-        );
+        //console.log(colors.blue.bold(`Email de cuenta bloqueada enviado: ${user.name}`));
       } catch (error) {
-        console.error(
-          colors.red.bold(`Error de sendAccountBlockedEmail: ${error.message}`)
-        );
+        //console.error(colors.red.bold(`Error de sendAccountBlockedEmail: ${error.message}`));
       }
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      //console.error(colors.red.bold(`☠️  Contraseña incorrecta en isPasswordCorrect ${user.password}`));
-      user.passwordAttempts = user.passwordAttempts + 1;
-      await user.save();
-      return res.status(401).json({ msg: commonError });
-    }
-
-    user.passwordAttempts = 0;
+    // Guarda el nuevo número de intentos fallidos
     await user.save();
 
-    return res.status(200).json({
-      //console.error(colors.green.bold(`Sesión Iniciada ${user.name}`));
-      msg: "¡Inicio de sesión exitoso! Qué alegría verte de nuevo por AppSalon.",
-    });
+    return res.status(401).json({ msg: commonError });
   } catch (error) {
-    console.error(
-      colors.red.bold(
-        `☠️  Error en el servidor durante el login: ${error.message}`
-      )
-    );
+    //console.error(colors.red.bold(`☠️  Error en el servidor durante el login: ${error.message}`));
     return res.status(500).json({
       msg: "Error interno del servidor. Algo se rompió, auch",
     });

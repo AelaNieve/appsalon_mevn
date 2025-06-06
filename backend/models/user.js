@@ -13,9 +13,8 @@ const userSchema = mongoose.Schema({
     required: [true],
     trim: true,
   },
-  passwordAttems: {
+  passwordAttempts: {
     type: Number,
-    default: 0,
   },
   email: {
     type: String,
