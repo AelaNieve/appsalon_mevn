@@ -3,6 +3,7 @@ import { uniqueId } from "../helpers/errorHandling.js";
 import bcrypt from "bcryptjs";
 import colors from "colors";
 import { createHash } from "node:crypto";
+import axios from "axios";
 import {
   sendEmailVerification,
   sendDeletionConfirmationEmail,
@@ -39,6 +40,38 @@ const validatePassword = async (password) => {
     /123|234|345|456|567|678|789|890|098|987|876|765|654|543|432|321/; // regex que chekea si hay 3 numeros secuenciales
   const SIMPLE_ALPHABET_SEQUENCES_REGEX =
     /abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i; // regex que chekea si hay 3 letras secuenciales
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      isValid: false,
+      message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+    };
+  }
+  if (!HAS_UPPERCASE_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos una letra mayúscula.",
+    };
+  }
+  if (!HAS_LOWERCASE_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos una letra minúscula.",
+    };
+  }
+  if (!HAS_NUMBER_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message: "La contraseña necesita al menos un número.",
+    };
+  }
+  if (!HAS_SPECIAL_CHAR_REGEX.test(password)) {
+    return {
+      isValid: false,
+      message:
+        "La contraseña necesita al menos un carácter especial (ej. !@#$%).",
+    };
+  }
 
   // Función para identificar contrasseñas comunes a nivel de variables de entorno
   const isCommonPattern = (pwd) => {
@@ -101,38 +134,6 @@ const validatePassword = async (password) => {
     }
   };
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return {
-      isValid: false,
-      message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
-    };
-  }
-  if (!HAS_UPPERCASE_REGEX.test(password)) {
-    return {
-      isValid: false,
-      message: "La contraseña necesita al menos una letra mayúscula.",
-    };
-  }
-  if (!HAS_LOWERCASE_REGEX.test(password)) {
-    return {
-      isValid: false,
-      message: "La contraseña necesita al menos una letra minúscula.",
-    };
-  }
-  if (!HAS_NUMBER_REGEX.test(password)) {
-    return {
-      isValid: false,
-      message: "La contraseña necesita al menos un número.",
-    };
-  }
-  if (!HAS_SPECIAL_CHAR_REGEX.test(password)) {
-    return {
-      isValid: false,
-      message:
-        "La contraseña necesita al menos un carácter especial (ej. !@#$%).",
-    };
-  }
-
   // verificando si la contraseña no tiene patrones comunes
   if (isCommonPattern(password)) {
     return {
@@ -156,7 +157,7 @@ const validatePassword = async (password) => {
 
 // Controlador para el registro de usuarios
 const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, hcaptchaToken } = req.body;
 
   // Validación básica de campos obligatorios
   if ([name, email, password].some((field) => !field || field.trim() === "")) {
@@ -169,6 +170,60 @@ const register = async (req, res) => {
     //console.log(.yellow("Esa mamada de email que es?: ", email));
     return res.status(400).json({ msg: "El email no es valido." });
   }
+
+  if (!hcaptchaToken) {
+    return res
+      .status(400)
+      .json({ msg: "La verificación del captcha es requerida." });
+  }
+
+  // --- hCaptcha Verification Logic ---
+  try {
+    if (!hcaptchaToken) {
+      return res
+        .status(400)
+        .json({ msg: "La verificación del captcha es requerida." });
+    }
+
+    const secretKey = process.env.HCAPTCHA_SECRET_KEY; // Make sure you have this in your .env
+    const verificationURL = "https://api.hcaptcha.com/siteverify";
+
+    const params = new URLSearchParams();
+    params.append("secret", secretKey);
+    params.append("response", hcaptchaToken);
+
+    const { data: verificationResponse } = await axios.post(
+      verificationURL,
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    if (!verificationResponse.success) {
+      console.warn(
+        colors.yellow(
+          `⚠️ Captcha verification failed. Reason: ${verificationResponse[
+            "error-codes"
+          ]?.join(", ")}`
+        )
+      );
+      return res.status(400).json({
+        msg: "La verificación del captcha ha fallado. Por favor, inténtalo de nuevo.",
+      });
+    }
+    // If we reach here, the captcha is valid! ✅
+  } catch (error) {
+    console.error(
+      colors.red.bold(`☠️ Error during hCaptcha verification: ${error.message}`)
+    );
+    return res
+      .status(500)
+      .json({ msg: "Error interno del servidor al verificar el captcha." });
+  }
+
   // Validar que la contraseña sea segura
   const passwordValidationResult = await validatePassword(password);
   if (!passwordValidationResult.isValid) {
@@ -365,7 +420,7 @@ const requestAccountDeletion = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     const commonError =
-      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta.";
+      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta, si no estaba verificada la cuenta fue eliminada";
 
     if (!user) {
       //console.log(colors.blue.bold("Solicitud de eliminación para email no registrado:", email));
@@ -375,9 +430,7 @@ const requestAccountDeletion = async (req, res) => {
     if (!user.verified) {
       await User.deleteOne({ _id: user._id });
       //console.log(colors.green(`Cuenta no verificada (${email}) eliminada directamente.`));
-      return res
-        .status(200)
-        .json({ msg: "La cuenta no estaba verificada y ha sido eliminada." });
+      return res.status(200).json({ msg: commonError });
     }
     // Verificación que previene spam de la función
     if (
@@ -422,7 +475,7 @@ const confirmAccountDeletion = async (req, res) => {
 
   try {
     const commonError =
-      "Si la cuenta existe y está verificada, se enviará un enlace para borrar la cuenta.";
+      "La petición no fue valida, intenta volver a mandar otra petición.";
     const deletionUser = await User.findOne({ deleteToken });
 
     if (!deletionUser) {
@@ -462,7 +515,7 @@ const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     const commonError =
-      "Si una cuenta con ese email existe y está verificada, se enviará un enlace de recuperación, revise su bandeja de entrada y spam. El enlace es válido por 1 hora.";
+      "Si una cuenta con ese email existe y está verificada, se enviará un enlace de recuperación, revise su bandeja de entrada y spam. El enlace es válido por 1 hora. Si la cuenta no estaba verificada se elimino al instante";
 
     if (!user) {
       //console.log(colors.blue(`Solicitud de olvido de contraseña para email no registrado: ${email}`));
@@ -472,9 +525,7 @@ const forgotPassword = async (req, res) => {
     if (!user.verified) {
       //console.log(colors.yellow(`Cuenta no verificada (${email}) encontrada en forgotPassword. Eliminando.`));
       await User.deleteOne({ _id: user._id });
-      return res
-        .status(200)
-        .json({ msg: "La cuenta no estaba verificada y ha sido eliminada." });
+      return res.status(200).json({ msg: commonError });
     }
 
     // checkeo para evitar stamp de la funcion

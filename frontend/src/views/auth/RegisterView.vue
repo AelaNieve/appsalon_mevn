@@ -11,6 +11,23 @@ import { useAlertStore } from '@/stores/useAlertStore'
 const router = useRouter()
 const alertStore = useAlertStore()
 
+import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
+const captcha_KEY = import.meta.env.VITE_CAPTCHA_KEY
+
+const hcaptchaToken = ref(null)
+
+const onCaptchaVerified = (token) => {
+  console.log('hCaptcha token:', token)
+  hcaptchaToken.value = token
+  // You would typically include this token in your registration API call
+}
+
+const onCaptchaExpired = () => {
+  console.log('hCaptcha expired, please re-verify.')
+  hcaptchaToken.value = null // Clear the token if it expires
+  alertStore.showAlert('El captcha ha expirado. Por favor, re-verifica.', 'warning')
+}
+
 // Schema and form setup remains the same
 const schema = yup.object({
   name: yup.string().required('El nombre es obligatorio'),
@@ -64,13 +81,21 @@ const passwordCriteriaErrors = computed(() => {
 
 // --- IMPROVED ONSUBMIT FUNCTION ---
 const onSubmit = handleSubmit(async (vals) => {
+  if (!hcaptchaToken.value) {
+    alertStore.showAlert('Por favor, completa el captcha.', 'error')
+    return // Stop form submission if captcha is not verified
+  }
+
   const { name, email, password } = vals
 
   try {
+    // --- THIS IS THE CHANGE ---
+    // Add the hcaptchaToken to the payload
     const response = await AuthAPI.registerUser({
       name,
       email,
       password,
+      hcaptchaToken: hcaptchaToken.value, // Send the token to the backend
     })
 
     // The backend sends the same success message whether the user is new or already exists.
@@ -305,6 +330,11 @@ const inputClass = (fieldName) => {
       </div>
 
       <div>
+        <vue-hcaptcha
+          :sitekey="captcha_KEY"
+          @verify="onCaptchaVerified"
+          @expired="onCaptchaExpired"
+        ></vue-hcaptcha>
         <button
           type="submit"
           :disabled="isSubmitting"

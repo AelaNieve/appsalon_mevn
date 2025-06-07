@@ -80,7 +80,7 @@ const router = createRouter({
           children: [
             {
               path: 'requerir-borrar-cuenta/:token',
-              name: 'forgot-password',
+              name: 'delete-account',
               component: () => import('../views/auth/ProblemsView/RequestDeletionView.vue'),
             },
             {
