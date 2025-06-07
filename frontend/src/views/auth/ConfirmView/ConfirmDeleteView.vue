@@ -31,7 +31,7 @@ onMounted(async () => {
     const { data } = await AuthAPI.confirmAccountDeletion(token)
     deletionStatus.value = 'success'
     alertStore.showAlert(data.msg, 'success')
-    startCountdownAndRedirect('register')
+    startCountdownAndRedirect('home')
   } catch (error) {
     //console.error('Account deletion failed:', error)
     deletionStatus.value = 'error'
@@ -50,8 +50,8 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex flex-col items-center justify-center text-center px-4 space-y-6">
     <div v-if="isLoading">
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Deleting Account...</h1>
-      <p class="text-lg md:text-xl text-gray-300 mt-2">Your request is being processed.</p>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Borrando Cuenta...</h1>
+      <p class="text-lg md:text-xl text-gray-300 mt-2">Tu cuenta esta siendo eliminada.</p>
       <div
         class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500 mx-auto mt-6"
       ></div>
@@ -72,9 +72,11 @@ onBeforeUnmount(() => {
           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
         ></path>
       </svg>
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Account Deleted</h1>
-      <p class="text-lg md:text-xl text-gray-300">Your account has been permanently removed.</p>
-      <p class="text-md text-gray-400">Redirecting in {{ countdown }} seconds...</p>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Cuenta borrada</h1>
+      <p class="text-lg md:text-xl text-gray-300">Tu cuenta ha sido permanentemente eliminada.</p>
+      <p class="text-md text-gray-400">
+        Redirigiendo a la pagina de inicio en: {{ countdown }} segundos...
+      </p>
     </div>
 
     <div v-if="deletionStatus === 'error'" class="space-y-4">
@@ -92,11 +94,11 @@ onBeforeUnmount(() => {
           d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
         ></path>
       </svg>
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Deletion Error</h1>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white">Error al borrar la cuenta</h1>
       <p class="text-lg md:text-xl text-gray-300">
-        The deletion link may be invalid or has expired.
+        Puede que el link para borrar la cuenta no sea valido o ya expiro
       </p>
-      <p class="text-md text-gray-400">Redirecting in {{ countdown }} seconds...</p>
+      <p class="text-md text-gray-400">Redirigiendo a problemans en: {{ countdown }} seconds...</p>
     </div>
   </div>
 </template>

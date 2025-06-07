@@ -31,6 +31,6 @@ router.delete("/confirm-delete-account/:deleteToken", confirmAccountDeletion);
 router.post("/forgot-password", forgotPassword);
 
 // Ruta para procesar el cambio de contraseña con el token
-router.put("/reset-password", resetPassword);
+router.post("/reset-password/:passwordResetToken", resetPassword); // NEW
 
 export default router;

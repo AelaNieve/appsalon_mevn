@@ -13,8 +13,8 @@ import {
 
 // --- Para prevenir attaquens de spam de creación y eliminación de cuentas ---
 const registrationAttempts = new Map(); // Stores IP addresses and their request timestamps
-const MAX_REGISTRATION_ATTEMPTS = 5; // Max attempts per IP
-const REGISTRATION_TIME_WINDOW_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
+const MAX_REGISTRATION_ATTEMPTS = 2; // Max attempts per IP
+const REGISTRATION_TIME_WINDOW_MS = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 /**
  * Valida una contraseña según los criterios definidos.
@@ -158,6 +158,7 @@ const validatePassword = async (password) => {
 // Controlador para el registro de usuarios
 const register = async (req, res) => {
   const { name, email, password, hcaptchaToken } = req.body;
+  const isPostmanMode = process.argv[2] === "--postman";
 
   // Validación básica de campos obligatorios
   if ([name, email, password].some((field) => !field || field.trim() === "")) {
@@ -177,39 +178,49 @@ const register = async (req, res) => {
       .json({ msg: "La verificación del captcha es requerida." });
   }
 
-  // --- hCaptcha Verification Logic ---
-  try {
-    const secretKey = process.env.HCAPTCHA_SECRET_KEY; // Make sure you have this in your .env
-    const verificationURL = "https://api.hcaptcha.com/siteverify";
-
-    const params = new URLSearchParams();
-    params.append("secret", secretKey);
-    params.append("response", hcaptchaToken);
-
-    const { data: verificationResponse } = await axios.post(
-      verificationURL,
-      params,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-
-    if (!verificationResponse.success) {
-      //console.warn(colors.yellow(`⚠️ Captcha verification failed. Reason: ${verificationResponse["error-codes"]?.join(", ")}`));
-      return res.status(400).json({
-        msg: "La verificación del captcha ha fallado. Por favor, inténtalo de nuevo.",
-      });
+  // ✅ Solo ejecuta la validación de hCaptcha si NO estamos en modo Postman.
+  if (!isPostmanMode) {
+    //console.log("Captcha Start");
+    if (!hcaptchaToken) {
+      return res
+        .status(400)
+        .json({ msg: "La verificación del captcha es requerida." });
     }
-    // If we reach here, the captcha is valid! ✅
-  } catch (error) {
-    console.error(
-      colors.red.bold(`☠️ Error during hCaptcha verification: ${error.message}`)
-    );
-    return res
-      .status(500)
-      .json({ msg: "Error interno del servidor al verificar el captcha." });
+
+    // --- hCaptcha Verification Logic ---
+    try {
+      const secretKey = process.env.HCAPTCHA_SECRET_KEY;
+      const verificationURL = "https://api.hcaptcha.com/siteverify";
+
+      const params = new URLSearchParams();
+      params.append("secret", secretKey);
+      params.append("response", hcaptchaToken);
+
+      const { data: verificationResponse } = await axios.post(
+        verificationURL,
+        params,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      if (!verificationResponse.success) {
+        return res.status(400).json({
+          msg: "La verificación del captcha ha fallado. Por favor, inténtalo de nuevo.",
+        });
+      }
+    } catch (error) {
+      console.error(
+        colors.red.bold(
+          `☠️ Error during hCaptcha verification: ${error.message}`
+        )
+      );
+      return res
+        .status(500)
+        .json({ msg: "Error interno del servidor al verificar el captcha." });
+    }
   }
 
   // Validar que la contraseña sea segura
@@ -245,8 +256,6 @@ const register = async (req, res) => {
     const commonResponse =
       "¡Registro exitoso! Revisa tu correo para verificar tu cuenta. ¡Ya casi estás dentro!";
 
-    registrationAttempts.set(clientIp, [...recentAttempts, now]);
-
     //  Verificar si el usuario ya existe.
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -266,6 +275,7 @@ const register = async (req, res) => {
     });
 
     await user.save();
+    registrationAttempts.set(clientIp, [...recentAttempts, now]);
     // Enviar email de verificación.
     try {
       await sendEmailVerification({
@@ -497,7 +507,7 @@ const forgotPassword = async (req, res) => {
   //console.log(email);
   if (!email || email.trim() === "" || !/^\S+@\S+\.\S+$/.test(email)) {
     //console.log(colors.yellow("Esa mamada de email que es?: ", email));
-    return res.status(200).json({ msg: "El email no es valido." });
+    return res.status(400).json({ msg: "El email no es valido." });
   }
 
   try {
@@ -557,54 +567,53 @@ const forgotPassword = async (req, res) => {
 
 // Controlador para verificar el token y cambiar la contraseña
 const resetPassword = async (req, res) => {
-  const { password, passwordResetToken } = req.body;
-  //console.log("contraseña ", password, "token ", passwordResetToken);
+  const { passwordResetToken } = req.params;
+  const { password } = req.body;
 
   if (!password || password.trim() === "") {
     return res.status(400).json({ msg: "La nueva contraseña es obligatoria." });
   }
 
   try {
-    const userResetPassword = await User.findOne({ passwordResetToken });
+    const user = await User.findOne({ passwordResetToken });
     const commonError =
       "El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicite uno nuevo.";
-    if (!userResetPassword) {
-      //console.log(colors.yellow(`No se encontro usuario con: ${passwordResetToken}, ${userResetPassword}.`));
-      return res.status(200).json({ msg: commonError });
-    }
-    // Consiguiendo la fecha y hora de creación de la petición de resetear contraseña
-    const expiredUser = userResetPassword.passwordResetTokenExpires;
-    // Si la hora para verificar ya paso se resetea la variable
-    if (expiredUser < Date.now()) {
-      userResetPassword.passwordResetToken = "";
-      userResetPassword.passwordResetTokenExpires = "";
-      await userResetPassword.save();
-      //console.log(colors.yellow(`EL link para cambiar contraseña expirado para ${user.name}.`));
-      return res.status(200).json({ msg: commonError });
+
+    if (!user) {
+      return res.status(404).json({ msg: commonError });
     }
 
-    //verificando si la nueva contraseña es segura
+    // Check if the token has expired
+    if (user.passwordResetTokenExpires < Date.now()) {
+      user.passwordResetToken = "";
+      user.passwordResetTokenExpires = null; // Use null for clarity
+      await user.save();
+      return res.status(400).json({ msg: commonError });
+    }
+
+    // Validate the new password strength
     const passwordValidationResult = await validatePassword(password);
     if (!passwordValidationResult.isValid) {
       return res.status(400).json({ msg: passwordValidationResult.message });
     }
-    // Haseado la contraseña
-    const salt = await bcrypt.genSalt(10);
-    userResetPassword.password = await bcrypt.hash(password, salt);
-    // Reseteando los tokens para la validación para cambiar la contraseña
-    userResetPassword.passwordResetToken = "";
-    userResetPassword.passwordResetTokenExpires = "";
-    // Esta linea se encarga de resetar la seguridad del brute foce
-    userResetPassword.passwordAttempts = 0;
 
-    await userResetPassword.save();
-    // console.log(colors.green(`Contraseña actualizada con éxito para ${userResetPassword.email}.`));
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    // Clean up password reset fields
+    user.passwordResetToken = "";
+    user.passwordResetTokenExpires = null;
+    user.passwordAttempts = 0; // Reset brute force counter
+
+    await user.save();
+
     return res.status(200).json({
       msg: "Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
     });
   } catch (error) {
     console.error(
-      colors.red.bold(`☠️  Error en resetPassword controller: ${error.message}`)
+      colors.red.bold(`☠️  Error in resetPassword controller: ${error.message}`)
     );
     return res.status(500).json({
       msg: "Error interno del servidor al intentar cambiar la contraseña.",

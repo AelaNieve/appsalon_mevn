@@ -67,7 +67,7 @@ const router = createRouter({
               component: () => import('../views/auth/ConfirmView/ConfirmDeleteView.vue'),
             },
             {
-              path: 'resetear-contraseña/:token',
+              path: 'resetear-contrasena/:token',
               name: 'reset-password',
               component: () => import('../views/auth/ConfirmView/ConfirmPasswordView.vue'),
             },
@@ -79,12 +79,12 @@ const router = createRouter({
           component: () => import('../views/auth/ProblemsView.vue'),
           children: [
             {
-              path: 'requerir-borrar-cuenta/:token',
+              path: 'requerir-borrar-cuenta',
               name: 'request-delete-account',
               component: () => import('../views/auth/ProblemsView/RequestDeletionView.vue'),
             },
             {
-              path: 'requerir-resetear-contraseña/:token',
+              path: 'requerir-resetear-contraseña',
               name: 'forgot-password',
               component: () => import('../views/auth/ProblemsView/RequestPasswordView.vue'),
             },

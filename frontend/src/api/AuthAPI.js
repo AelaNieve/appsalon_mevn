@@ -34,8 +34,8 @@ export default {
    * Requests account deletion, sending a confirmation email to the user.
    * @returns {Promise<Object>} A promise that resolves with the API response data.
    */
-  requestAccountDeletion() {
-    return api.post('/auth/request-delete-account')
+  requestAccountDeletion(emailData) {
+    return api.post('/auth/request-delete-account', emailData)
   },
 
   /**
@@ -58,10 +58,13 @@ export default {
 
   /**
    * Resets the user's password using a token and new password.
-   * @param {Object} resetData - An object containing the reset token and new password ({ token: '...', password: 'newPassword' }).
+   * @param {string} token - The password reset token from the URL.
+   * @param {string} password - The new password.
+   * @param {string} password_confirmation - The confirmed new password.
    * @returns {Promise<Object>} A promise that resolves with the API response data.
    */
-  resetPassword(resetData) {
-    return api.put('/auth/reset-password', resetData)
+  resetPassword({ token, password }) {
+    // We use a POST request as it's more appropriate for sending credentials.
+    return api.post(`/auth/reset-password/${token}`, { password })
   },
 }
