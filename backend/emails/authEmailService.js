@@ -17,7 +17,7 @@ export async function sendEmailVerification({ name, email, token }) {
     mailtrapConfig.mailtrapPass
   );
 
-  const verificationLink = `${process.env.FRONTEND_URL}/auth/confirmar-cuenta/${token}`;
+  const verificationLink = `${process.env.FRONTEND_URL}/auth/confirmar/account/${token}`;
 
   const emailOptions = {
     from: '"AppSalon Co." <no-reply@appsalon.com>',

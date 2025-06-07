@@ -1,4 +1,4 @@
-// frontend\src\router\index.js
+// frontend/src/router/index.js
 
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
@@ -80,7 +80,7 @@ const router = createRouter({
           children: [
             {
               path: 'requerir-borrar-cuenta/:token',
-              name: 'delete-account',
+              name: 'request-delete-account',
               component: () => import('../views/auth/ProblemsView/RequestDeletionView.vue'),
             },
             {

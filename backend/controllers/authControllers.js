@@ -179,12 +179,6 @@ const register = async (req, res) => {
 
   // --- hCaptcha Verification Logic ---
   try {
-    if (!hcaptchaToken) {
-      return res
-        .status(400)
-        .json({ msg: "La verificación del captcha es requerida." });
-    }
-
     const secretKey = process.env.HCAPTCHA_SECRET_KEY; // Make sure you have this in your .env
     const verificationURL = "https://api.hcaptcha.com/siteverify";
 
@@ -203,13 +197,7 @@ const register = async (req, res) => {
     );
 
     if (!verificationResponse.success) {
-      console.warn(
-        colors.yellow(
-          `⚠️ Captcha verification failed. Reason: ${verificationResponse[
-            "error-codes"
-          ]?.join(", ")}`
-        )
-      );
+      //console.warn(colors.yellow(`⚠️ Captcha verification failed. Reason: ${verificationResponse["error-codes"]?.join(", ")}`));
       return res.status(400).json({
         msg: "La verificación del captcha ha fallado. Por favor, inténtalo de nuevo.",
       });
@@ -480,7 +468,7 @@ const confirmAccountDeletion = async (req, res) => {
 
     if (!deletionUser) {
       //console.log(colors.yellow(`No se encontro usuario con: ${deleteToken}.`));
-      return res.status(200).json({ msg: commonError });
+      return res.status(400).json({ msg: commonError });
     }
     const expiredUser = deletionUser.deleteTokenExpires;
     if (expiredUser < Date.now()) {
@@ -488,7 +476,7 @@ const confirmAccountDeletion = async (req, res) => {
       deletionUser.deleteTokenExpires = "";
       await deletionUser.save();
       //console.log(colors.yellow(`Token de eliminación expirado para ${deleteToken}.`));
-      return res.status(200).json({ msg: commonError });
+      return res.status(400).json({ msg: commonError });
     }
     await User.deleteOne({ _id: deletionUser._id });
     //console.log(colors.green(`Cuenta eliminada con éxito: ${deletionUser.email}`));
