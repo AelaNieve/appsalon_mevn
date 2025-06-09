@@ -36,8 +36,14 @@ const togglePasswordVisibility = () => {
 // Submission Handler
 const onSubmit = handleSubmit(async (values) => {
   try {
+    // The request now automatically sends credentials (cookies)
     const { data } = await AuthAPI.login(values)
+
+    // ✨ NO MORE LOCALSTORAGE ✨
+    // The token is now in a secure HttpOnly cookie, managed by the browser.
+
     alertStore.showAlert(data.msg, 'success')
+
     // TODO: Store JWT, redirect to a protected route (e.g., dashboard)
     //router.push({ name: 'my-appointments' })
   } catch (error) {

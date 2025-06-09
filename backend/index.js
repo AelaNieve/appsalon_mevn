@@ -7,12 +7,14 @@ import cors from "cors";
 import { db } from "./config/db.js";
 import servicesRoutes from "./routes/servicesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import cookieParser from "cookie-parser";
 
 // Cargar las variables de entorno.
 dotenv.config();
 
 // Crear la app de Express. Si no, no funkara la API
 const app = express();
+app.use(cookieParser()); // Use cookie-parser middleware
 
 // IMPORTANTE: configurando el express para que confie en el proxy
 // Esta linea es utilizada para identificar el ip del cliente

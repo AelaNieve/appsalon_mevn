@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import colors from "colors";
 import { createHash } from "node:crypto";
 import axios from "axios";
+import jwt from "jsonwebtoken";
 import {
   sendEmailVerification,
   sendDeletionConfirmationEmail,
@@ -340,6 +341,12 @@ const verifyAccount = async (req, res) => {
 
 // Controlador para el login de usuarios
 const login = async (req, res) => {
+  const generateJWT = (id) => {
+    const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+      expiresIn: "2h",
+    });
+    return token;
+  };
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -370,6 +377,14 @@ const login = async (req, res) => {
       // Restablece los intentos a 0 y guarda
       user.passwordAttempts = 0;
       await user.save();
+      const token = generateJWT(user._id);
+      // ✨ SET TOKEN IN HTTPONLY COOKIE ✨
+      res.cookie("AUTH_TOKEN", token, {
+        httpOnly: true, // Prevents JS access
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Mitigates CSRF attacks
+        maxAge: 1000 * 60 * 60 * 2, // 2 hours (should match JWT expiry)
+      });
 
       //console.log(colors.green.bold(`Sesión Iniciada ${user.name}`));
       return res.status(200).json({
