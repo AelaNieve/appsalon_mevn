@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router' // Import RouterView
 import CustomAlert from '@/views/CustomAlert.vue' // Import CustomAlert
 import { useAlertStore } from '@/stores/useAlertStore' // Import the alert store
+import { useUserStore } from '../stores/user.js'
 
+const user = useUserStore()
 const menuOpen = ref(false)
 const alertStore = useAlertStore() // Initialize the alert store
 
@@ -26,18 +28,19 @@ const toggleMenu = () => {
         </h1>
       </a>
       <p class="text-white font-semibold italic drop-shadow text-left hidden md:block">
-        Hola: Usuario
+        Hola: {{ user.getUserName }}
       </p>
 
       <div class="flex flex-1 items-center justify-end">
         <nav aria-label="Global" class="hidden md:block">
           <ul class="flex items-center gap-8 text-base">
             <li>
-              <button
+              <RouterLink
+                :to="{ name: 'my-appointments' }"
                 class="rounded-full bg-light-mauve px-6 py-2 text-base font-semibold text-deep-plum shadow-md transition hover:text-dark-indigo hover:bg-muted-grape cursor-pointer border-2 border-light-mauve/40 hover:border-dark-indigo/40"
               >
                 Mis Citas
-              </button>
+              </RouterLink>
             </li>
             <li>
               <RouterLink
@@ -51,6 +54,7 @@ const toggleMenu = () => {
               <button
                 type="button"
                 class="block rounded-full bg-gradient-to-r from-deep-plum via-muted-grape to-light-mauve px-6 py-2 text-base font-semibold text-white shadow-md transition hover:bg-dark-indigo/80 cursor-pointer border-2 border-muted-grape/40 hover:border-dark-indigo/40"
+                @click="user.logout"
               >
                 Cerrar Sesión
               </button>
@@ -59,7 +63,9 @@ const toggleMenu = () => {
         </nav>
 
         <div class="flex items-center gap-4 md:hidden">
-          <p class="text-white text-right font-semibold italic drop-shadow">Hola: Usuario</p>
+          <p class="text-white text-right font-semibold italic drop-shadow">
+            Hola: {{ user.getUserName }}
+          </p>
 
           <button
             @click="toggleMenu"
@@ -106,6 +112,7 @@ const toggleMenu = () => {
           <button
             type="button"
             class="block w-full text-center rounded-full px-6 py-2 text-base font-semibold text-white shadow-md transition bg-gradient-to-r from-muted-grape to-dark-indigo hover:from-dark-indigo hover:to-muted-grape cursor-pointer border-2 border-muted-grape/40 hover:border-dark-indigo/40"
+            @click="user.logout"
           >
             Cerrar Sesión
           </button>

@@ -343,7 +343,7 @@ const verifyAccount = async (req, res) => {
 const login = async (req, res) => {
   const generateJWT = (id) => {
     const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
+      expiresIn: "15m", // Change from "2h" to "15m"
     });
     return token;
   };
@@ -636,6 +636,11 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const user = async (req, res) => {
+  const { user } = req;
+  res.json(user);
+};
+
 export {
   register,
   verifyAccount,
@@ -644,4 +649,5 @@ export {
   confirmAccountDeletion,
   forgotPassword,
   resetPassword,
+  user,
 };

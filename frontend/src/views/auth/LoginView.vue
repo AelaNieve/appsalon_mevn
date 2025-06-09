@@ -4,8 +4,12 @@ import * as yup from 'yup'
 import { ref } from 'vue'
 import AuthAPI from '@/api/AuthAPI'
 import { useAlertStore } from '@/stores/useAlertStore'
+import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
+const userStore = useUserStore()
 
 const alertStore = useAlertStore()
+const router = useRouter()
 
 // Validation Schema
 const schema = yup.object({
@@ -36,16 +40,11 @@ const togglePasswordVisibility = () => {
 // Submission Handler
 const onSubmit = handleSubmit(async (values) => {
   try {
-    // The request now automatically sends credentials (cookies)
     const { data } = await AuthAPI.login(values)
-
-    // ✨ NO MORE LOCALSTORAGE ✨
-    // The token is now in a secure HttpOnly cookie, managed by the browser.
-
+    await userStore.fetchUser() // <-- fetch and set user data after login
+    userStore.startAutoLogoutTimer()
+    await router.push({ name: 'my-appointments' })
     alertStore.showAlert(data.msg, 'success')
-
-    // TODO: Store JWT, redirect to a protected route (e.g., dashboard)
-    //router.push({ name: 'my-appointments' })
   } catch (error) {
     console.error('Login failed:', error)
     let alertMessage = 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.'

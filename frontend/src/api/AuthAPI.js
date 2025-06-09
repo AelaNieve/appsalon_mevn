@@ -22,15 +22,6 @@ export default {
   },
 
   /**
-   * Logs in a user.
-   * @param {Object} credentials - The user's login credentials (email, password).
-   * @returns {Promise<Object>} A promise that resolves with the API response data.
-   */
-  login(credentials) {
-    return api.post('/auth/login', credentials)
-  },
-
-  /**
    * Requests account deletion, sending a confirmation email to the user.
    * @returns {Promise<Object>} A promise that resolves with the API response data.
    */
@@ -66,5 +57,29 @@ export default {
   resetPassword({ token, password }) {
     // We use a POST request as it's more appropriate for sending credentials.
     return api.post(`/auth/reset-password/${token}`, { password })
+  },
+
+  /**
+   * Logs in a user.
+   * @param {Object} credentials - The user's login credentials (email, password).
+   * @returns {Promise<Object>} A promise that resolves with the API response data.
+   */
+  login(credentials) {
+    return api.post('/auth/login', credentials)
+  },
+
+  /**
+   * Checks if the user is authenticated by verifying the cookie with the backend.
+   * @returns {Promise<Object>} A promise that resolves with the user data if authenticated.
+   */
+  auth() {
+    // ✅ CORRECT: Just make the request.
+    // The browser will automatically send the HttpOnly cookie.
+    // No need to set the Authorization header manually.
+    return api.get('/auth/user')
+  },
+  logout() {
+    // This endpoint on your backend should be responsible for clearing the JWT cookie.
+    return api.post('/auth/logout')
   },
 }

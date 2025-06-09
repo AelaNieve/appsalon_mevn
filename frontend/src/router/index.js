@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
 import AppointmentsLayout from '@/components/AppointmentsLayout.vue'
+import AuthAPI from '@/api/AuthAPI'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,7 +18,13 @@ const router = createRouter({
       path: '/reservaciones',
       name: 'appointments',
       component: AppointmentsLayout,
+      meta: { requiresAuth: true },
       children: [
+        {
+          path: '',
+          name: 'my-appointments',
+          component: () => import('../views/appointments/MyAppointmentsView.vue'),
+        },
         {
           path: 'nueva',
           component: () => import('../views/appointments/NewAppointmentsLayout.vue'),
@@ -93,6 +100,20 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.matched.some((url) => url.meta.requiresAuth)
+  if (requiresAuth) {
+    try {
+      await AuthAPI.auth()
+      next()
+    } catch (error) {
+      next({ name: 'login' })
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
