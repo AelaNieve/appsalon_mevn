@@ -5,6 +5,7 @@ import HomeView from '@/components/HomeView.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
 import AppointmentsLayout from '@/components/AppointmentsLayout.vue'
 import AuthAPI from '@/api/AuthAPI'
+import AdminLayout from '../components/AdminLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,18 +15,18 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
     },
-        {
+    {
       path: '/admin',
       name: 'admin',
-      component: () => import('../views/admin/AdminLayout.vue'),
+      component: AdminLayout,
       meta: { requiresAdmin: true },
       children: [
         {
           path: '',
           name: 'admin-appointments',
-          component: () => import(''),
-        }
-      ]
+          component: () => import('../views/admin/AppointmentsView.vue'),
+        },
+      ],
     },
     {
       path: '/reservaciones',
@@ -56,20 +57,20 @@ const router = createRouter({
         },
         {
           path: ':id/editar',
-          component: () => import(''),
+          component: () => import('../views/appointments/EditAppointmentLayout.vue'),
           children: [
             {
-                path: '',
-                name: 'edit-appointment',
-                component: () => import(''),
+              path: '',
+              name: 'edit-appointment',
+              component: () => import('../views/appointments/ServicesView.vue'),
             },
             {
-                path: 'detalles',
-                name: 'edit-appointment-details',
-                component: () => import(''),
+              path: 'detalles',
+              name: 'edit-appointment-details',
+              component: () => import('../views/appointments/AppoinmentView.vue'),
             },
-          ]
-        }
+          ],
+        },
       ],
     },
     {
@@ -131,19 +132,18 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach( async (to, from, next) => {
-  const requiresAdmin = to.matched.some(url => url.meta.requiresAdmin)
-  if(requiresAdmin) {
+router.beforeEach(async (to, from, next) => {
+  const requiresAdmin = to.matched.some((url) => url.meta.requiresAdmin)
+  if (requiresAdmin) {
     try {
       await AuthAPI.admin()
       next()
     } catch (error) {
-      next({name: 'login'})
+      next({ name: 'login' })
     }
   } else {
     next()
   }
-
 })
 
 router.beforeEach(async (to, from, next) => {
