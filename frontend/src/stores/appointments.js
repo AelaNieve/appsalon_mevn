@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from './useAlertStore' // Import the alert store
+import AppointmentAPI from '@/api/AppointmentAPI'
+import { convertToISO } from '@/helpers/date'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   const services = ref([])
@@ -25,14 +27,15 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     }
   }
 
-  function createAppointment() {
+  async function createAppointment() {
     const appointment = {
       services: services.value.map((service) => service._id),
-      date: date.value,
+      date: convertToISO(date.value),
       time: time.value,
       totalAmount: totalAmount.value,
     }
-    console.log(appointment)
+    //console.log('Fecha: ', convertToISO(appointment.date))
+    await AppointmentAPI.create(appointment)
     // Optionally, show a success alert after creating an appointment
     alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
   }
