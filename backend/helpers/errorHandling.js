@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import colors from "colors";
 import crypto from "crypto";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 // Devuelve TRUE si el ID es VÁLIDO, FALSE si es INVÁLIDO.
 function isValidObjectId(id) {
@@ -31,7 +33,32 @@ function validateMailtrapConfig() {
   return { mailtrapHost, mailtrapPort, mailtrapUser, mailtrapPass };
 }
 
-// Generador de IDs únicos
+// Generador de IDs únicos (más seguro)
 const uniqueId = () => crypto.randomBytes(15).toString("hex");
 
-export { isValidObjectId, serviceExists, uniqueId, validateMailtrapConfig };
+// Alternativa: Generador de IDs únicos basado en fecha y aleatorio
+// const uniqueId = () => Date.now().toString(32) + Math.random().toString(32).substring(2);
+
+// Valida ObjectId y responde con 400 si no es válido
+function validateObjectId(id, res) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const error = new Error("El ID no es válido");
+    return res.status(400).json({
+      msg: error.message,
+    });
+  }
+}
+
+// Formatea fecha en español
+function formatDate(date) {
+  return format(date, "PPPP", { locale: es });
+}
+
+export {
+  isValidObjectId,
+  serviceExists,
+  uniqueId,
+  validateMailtrapConfig,
+  validateObjectId,
+  formatDate,
+};

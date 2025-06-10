@@ -9,6 +9,7 @@ import servicesRoutes from "./routes/servicesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import cookieParser from "cookie-parser";
+import userRoutes from "./routes/userRoutes.js"; // <--- Agrega esta línea
 
 // Cargar las variables de entorno.
 dotenv.config();
@@ -60,6 +61,7 @@ app.use(cors(corsOptions));
 app.use("/api/services", servicesRoutes); // Rutas para todo lo relacionado con servicios
 app.use("/api/auth", authRoutes); // Rutas para la autenticación y manejo de usuarios
 app.use("/api/appointments", appointmentRoutes); // Rutas para la autenticación y manejo de usuarios
+app.use('/api/users', userRoutes)
 
 // Puerto donde el servidor escuchará.
 const PORT = process.env.PORT || 4000;

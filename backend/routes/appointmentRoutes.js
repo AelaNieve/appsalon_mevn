@@ -1,10 +1,17 @@
 // backend\routes\authRoutes.js
 import express from "express";
-import { createAppointment } from "../controllers/appointmentController.js";
+import { createAppointment, getAppointmentsByDate, getAppointmentById, updateAppointment, deleteAppointment } from '../controllers/appointmentController.js'
 import authMiddleware from "../middleware/authMIddleware.js";
 
 const router = express.Router();
 
-router.route("/").post(authMiddleware, createAppointment);
+router.route('/')
+    .post(authMiddleware, createAppointment)
+    .get(authMiddleware, getAppointmentsByDate)
+
+router.route('/:id')
+    .get(authMiddleware, getAppointmentById)
+    .put(authMiddleware, updateAppointment)
+    .delete(authMiddleware, deleteAppointment)
 
 export default router;

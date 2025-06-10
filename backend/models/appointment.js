@@ -17,12 +17,10 @@ const appointmentSchema = mongoose.Schema({
   totalAmount: {
     type: Number,
   },
-  user: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 // Modelo para los servicios, con este interactuamos en la base de datos
