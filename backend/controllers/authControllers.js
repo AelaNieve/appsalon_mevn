@@ -343,7 +343,7 @@ const verifyAccount = async (req, res) => {
 const login = async (req, res) => {
   const generateJWT = (id) => {
     const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-      expiresIn: "15m", // Change from "2h" to "15m"
+      expiresIn: "2h", // Change from "2h" to "15m"
     });
     return token;
   };
@@ -646,7 +646,9 @@ const admin = async (req, res) => {
   const { user } = req;
 
   if (!user || !user.admin) {
-    return res.status(403).json({ msg: "Acción no válida. No tienes permisos de administrador." });
+    return res
+      .status(403)
+      .json({ msg: "Acción no válida. No tienes permisos de administrador." });
   }
 
   // Puedes personalizar la respuesta según lo que quieras exponer del usuario admin
@@ -662,5 +664,5 @@ export {
   forgotPassword,
   resetPassword,
   user,
-  admin // <-- agrega aquí
+  admin, // <-- agrega aquí
 };

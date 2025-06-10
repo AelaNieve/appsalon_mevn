@@ -1,10 +1,9 @@
-import express from 'express';
-import authMiddleware from '../middleware/authMiddleware.js';
-import { getUserAppointments } from '../controllers/userController.js';
+import express from "express";
+import { getUserAppointments } from "../controllers/userController.js";
+import authMiddleware from "../middleware/authMIddleware.js";
 
 const router = express.Router();
 
-// Ruta para obtener las citas del usuario autenticado
-router.get('/appointments', authMiddleware, getUserAppointments);
+router.get("/appointments", authMiddleware, getUserAppointments);
 
 export default router;

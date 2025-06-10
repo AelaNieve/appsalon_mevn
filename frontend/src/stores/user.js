@@ -44,11 +44,10 @@ export const useUserStore = defineStore('user', () => {
   async function getUserAppointments() {
     try {
       if (!user.value._id) return
-      const { data } = await AppointmentAPI.getUserAppointments(user.value._id)
+      const { data } = await AppointmentAPI.getUserAppointments()
       userAppointments.value = data
     } catch (error) {
       userAppointments.value = []
-      alert('No se pudieron cargar las citas')
       console.log(error)
     }
   }

@@ -2,7 +2,7 @@
 import SelectedService from '@/views/appointments/SelectedService.vue'
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 const appointments = useAppointmentsStore()
 
@@ -103,7 +103,7 @@ const maxDate = computed(() => {
       <div v-if="appointments.isValidReservation">
         <button
           class="cursor-pointer w-full md:w-auto bg-blue-500 p-3 rounded-lg"
-          @click="appointments.createAppointment"
+          @click="appointments.saveAppointment"
         >
           Confirmar reservación
         </button>

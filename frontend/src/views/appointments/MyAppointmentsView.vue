@@ -1,6 +1,17 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useUserStore } from '../../stores/user.js'
 const user = useUserStore()
+const errorMsg = ref('')
+
+onMounted(async () => {
+  try {
+    await user.getUserAppointments()
+    errorMsg.value = ''
+  } catch (error) {
+    errorMsg.value = 'No se pudieron cargar tus citas. Intenta de nuevo más tarde.'
+  }
+})
 </script>
 
 <template>
@@ -14,6 +25,20 @@ const user = useUserStore()
           A continuación podras administrar tus próximas citas
         </h1>
       </div>
+    </div>
+  </div>
+  <p v-if="user.loading" class="text-white text-2xl text-center mt-5">Cargando...</p>
+  <p v-else-if="errorMsg" class="text-red-500 text-2xl text-center mt-5">{{ errorMsg }}</p>
+  <div v-else>
+    <p v-if="user.noAppointments" class="text-white text-2xl text-center mt-5">
+      No tienes próximas citas
+    </p>
+    <div v-else class="grid grid-cols-1 gap-5 mt-10">
+      <Appointment
+        v-for="appointment in user.userAppointments"
+        :key="appointment._id"
+        :appointment="appointment"
+      />
     </div>
   </div>
 </template>

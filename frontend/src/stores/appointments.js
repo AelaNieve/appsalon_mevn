@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAlertStore } from './useAlertStore'
 import AppointmentAPI from '@/api/AppointmentAPI'
-import { convertToISO, convertToDDMMYYYY } from '@/helpers/date'
+import { convertToISO, toYYYYMMDD } from '@/helpers/date'
 import { useUserStore } from './user'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
@@ -56,12 +56,14 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       }
     } catch (error) {
       alertStore.showAlert('Error al obtener citas para la fecha.', 'error', 3000)
+      console.log(error.message)
     }
   })
 
   function setSelectedAppointment(appointment) {
     services.value = appointment.services
-    date.value = convertToDDMMYYYY(appointment.date)
+    // FIX: Use the new helper to format the date correctly for the input
+    date.value = toYYYYMMDD(appointment.date)
     time.value = appointment.time
     appointmentId.value = appointment._id
   }
