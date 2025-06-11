@@ -1,16 +1,13 @@
 // frontend\src\stores\user.js
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue' // Removed onBeforeUnmount
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router'
 import AuthAPI from '@/api/AuthAPI'
-import AppointmentAPI from '@/api/AppointmentAPI' // <-- Make sure the path is correct
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const user = ref({})
-  const userAppointments = ref([])
-  const loading = ref(true)
-  let logoutTimer = null
+  let logoutTimer = null // Variable to hold the timer ID
 
   const AUTO_LOGOUT_TIME = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
 
@@ -31,26 +28,12 @@ export const useUserStore = defineStore('user', () => {
     try {
       const { data } = await AuthAPI.auth()
       user.value = data
-      await getUserAppointments()
       startAutoLogoutTimer() // Start the timer when the user is authenticated on mount
     } catch (error) {
       console.log(error)
       router.push({ name: 'login' })
-    } finally {
-      loading.value = false
     }
   })
-
-  async function getUserAppointments() {
-    try {
-      if (!user.value._id) return
-      const { data } = await AppointmentAPI.getUserAppointments()
-      userAppointments.value = data
-    } catch (error) {
-      userAppointments.value = []
-      console.log(error)
-    }
-  }
 
   async function logout() {
     try {
@@ -58,21 +41,22 @@ export const useUserStore = defineStore('user', () => {
       await AuthAPI.logout() // Assuming you have a logout method in AuthAPI
 
       user.value = {} // Clear the user data in the store
-      userAppointments.value = []
       if (logoutTimer) {
         // Clear the timer when manually logging out
         clearTimeout(logoutTimer)
       }
       router.push({ name: 'login' }) // Redirect to the login page
     } catch (error) {
+      console.error('Error during logout:', error)
+      // Handle any errors during logout (e.g., show a notification)
+      // Even if there's an error on the backend, you might still want to clear
+      // local state and redirect the user for a better UX.
       user.value = {}
-      userAppointments.value = []
       if (logoutTimer) {
         // Clear the timer even if there's an error on logout
         clearTimeout(logoutTimer)
       }
       router.push({ name: 'login' })
-      console.error('Error during logout:', error)
     }
   }
 
@@ -80,26 +64,19 @@ export const useUserStore = defineStore('user', () => {
     try {
       const { data } = await AuthAPI.auth()
       user.value = data
-      await getUserAppointments()
     } catch (error) {
       user.value = {}
-      userAppointments.value = []
       console.log(error)
     }
   }
 
   const getUserName = computed(() => (user.value?.name ? user.value?.name : ''))
-  const noAppointments = computed(() => userAppointments.value.length === 0)
 
   return {
     user,
-    userAppointments,
-    loading,
     logout,
     getUserName,
     startAutoLogoutTimer,
-    fetchUser,
-    getUserAppointments,
-    noAppointments,
+    fetchUser, // <-- add this
   }
 })

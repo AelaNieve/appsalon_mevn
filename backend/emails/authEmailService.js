@@ -2,24 +2,20 @@ import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
 import { validateMailtrapConfig } from "../helpers/errorHandling.js";
 
-// Helper to get transporter with unified logic
-function getTransporter() {
+export async function sendEmailVerification({ name, email, token }) {
   let mailtrapConfig;
   try {
     mailtrapConfig = validateMailtrapConfig();
   } catch (error) {
-    throw new Error("Mailtrap configuration missing for email sending.");
+    throw new Error("Mailtrap configuration missing for verification email.");
   }
-  return createTransport(
+
+  const transporter = createTransport(
     mailtrapConfig.mailtrapHost,
     mailtrapConfig.mailtrapPort,
     mailtrapConfig.mailtrapUser,
     mailtrapConfig.mailtrapPass
   );
-}
-
-export async function sendEmailVerification({ name, email, token }) {
-  const transporter = getTransporter();
 
   const verificationLink = `${process.env.FRONTEND_URL}/auth/confirmar/account/${token}`;
 
@@ -63,7 +59,19 @@ export async function sendEmailVerification({ name, email, token }) {
 }
 
 export async function sendDeletionConfirmationEmail({ name, email, token }) {
-  const transporter = getTransporter();
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error("Mailtrap configuration missing for deletion email.");
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
 
   const deletionLink = `${process.env.FRONTEND_URL}/auth/confirmar/borrar-cuenta/${token}`;
 
@@ -108,7 +116,21 @@ export async function sendDeletionConfirmationEmail({ name, email, token }) {
 }
 
 export async function sendPasswordRecoveryEmail({ name, email, token }) {
-  const transporter = getTransporter();
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error(
+      "Mailtrap configuration missing for password recovery email."
+    );
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
 
   const recoveryLink = `${process.env.FRONTEND_URL}/auth/confirmar/resetear-contrasena/${token}`;
 
@@ -147,12 +169,26 @@ export async function sendPasswordRecoveryEmail({ name, email, token }) {
         `☠️  Error al enviar email de recuperación de contraseña a ${email}: ${error.message}`
       )
     );
-    throw error;
+    throw error; // Propagar el error para que el controlador lo maneje si es necesario
   }
 }
 
 export async function sendAccountBlockedEmail({ name, email }) {
-  const transporter = getTransporter();
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error(
+      "Mailtrap configuration missing for password recovery email."
+    );
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
 
   const recoveryLink = `${process.env.FRONTEND_URL}/problemas/requerir-resetear-contraseña`;
 
@@ -191,93 +227,6 @@ export async function sendAccountBlockedEmail({ name, email }) {
         `☠️  Error al enviar email de recuperación de contraseña a ${email}: ${error.message}`
       )
     );
-    throw error;
-  }
-}
-
-export async function sendEmailNewAppointment({ date, time }) {
-  const transporter = getTransporter();
-
-  const emailOptions = {
-    from: '"AppSalon Co." <citas@appsalon.com>',
-    to: 'admin@appsalon.com',
-    subject: "AppSalon - Nueva Cita",
-    text: "AppSalon - Nueva Cita",
-    html: `<p>Hola: Admin, tienes una nueva cita</p>
-           <p>La cita será el día: ${date} a las ${time} horas.</p>`,
-  };
-
-  try {
-    const info = await transporter.sendMail(emailOptions);
-    console.log(
-      colors.cyan.italic(
-        `📬 Mensaje de nueva cita enviado a admin@appsalon.com: ${info.messageId}.`
-      )
-    );
-  } catch (error) {
-    console.error(
-      colors.red.bold(
-        `☠️  Error al enviar email de nueva cita: ${error.message}`
-      )
-    );
-    throw error;
-  }
-}
-
-export async function sendEmailUpdateAppointment({ date, time }) {
-  const transporter = getTransporter();
-
-  const emailOptions = {
-    from: '"AppSalon Co." <citas@appsalon.com>',
-    to: 'admin@appsalon.com',
-    subject: "AppSalon - Cita Actualizada",
-    text: "AppSalon - Cita Actualizada",
-    html: `<p>Hola: Admin, un usuario ha modificado una cita.</p>
-           <p>La nueva cita será el día: ${date} a las ${time} horas.</p>`,
-  };
-
-  try {
-    const info = await transporter.sendMail(emailOptions);
-    console.log(
-      colors.cyan.italic(
-        `📬 Mensaje de cita actualizada enviado a admin@appsalon.com: ${info.messageId}.`
-      )
-    );
-  } catch (error) {
-    console.error(
-      colors.red.bold(
-        `☠️  Error al enviar email de cita actualizada: ${error.message}`
-      )
-    );
-    throw error;
-  }
-}
-
-export async function sendEmailCancelledAppointment({ date, time }) {
-  const transporter = getTransporter();
-
-  const emailOptions = {
-    from: '"AppSalon Co." <citas@appsalon.com>',
-    to: 'admin@appsalon.com',
-    subject: "AppSalon - Cita Cancelada",
-    text: "AppSalon - Cita Cancelada",
-    html: `<p>Hola: Admin, un usuario ha cancelado una cita.</p>
-           <p>La cita cancelada estaba programada para: ${date} a las ${time} horas.</p>`,
-  };
-
-  try {
-    const info = await transporter.sendMail(emailOptions);
-    console.log(
-      colors.cyan.italic(
-        `📬 Mensaje de cita cancelada enviado a admin@appsalon.com: ${info.messageId}.`
-      )
-    );
-  } catch (error) {
-    console.error(
-      colors.red.bold(
-        `☠️  Error al enviar email de cita cancelada: ${error.message}`
-      )
-    );
-    throw error;
+    throw error; // Propagar el error para que el controlador lo maneje si es necesario
   }
 }

@@ -399,7 +399,7 @@ const login = async (req, res) => {
     // Comprueba si este intento bloquea la cuenta
     if (user.passwordAttempts === 6) {
       try {
-        await sendAccountBlockedEmail({
+        sendAccountBlockedEmail({
           name: user.name,
           email: user.email,
         });
@@ -641,20 +641,6 @@ const user = async (req, res) => {
   res.json(user);
 };
 
-// Controlador para acceso de administrador
-const admin = async (req, res) => {
-  const { user } = req;
-
-  if (!user || !user.admin) {
-    return res
-      .status(403)
-      .json({ msg: "Acción no válida. No tienes permisos de administrador." });
-  }
-
-  // Puedes personalizar la respuesta según lo que quieras exponer del usuario admin
-  return res.status(200).json(user);
-};
-
 export {
   register,
   verifyAccount,
@@ -664,5 +650,4 @@ export {
   forgotPassword,
   resetPassword,
   user,
-  admin, // <-- agrega aquí
 };
