@@ -18,7 +18,7 @@ watch(
   (newCount) => {
     showAlert.value = newCount > 0
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 function continueToAppointment() {
@@ -54,7 +54,7 @@ function continueToAppointment() {
       role="alert"
       aria-live="assertive"
       class="fixed bottom-5 left-1/2 transform -translate-x-1/2 rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 border-4 backdrop-blur-sm alert-container"
-      style="border-color: var(--color-light-mauve);"
+      style="border-color: var(--color-light-mauve)"
     >
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-bold alert-heading">
@@ -63,7 +63,7 @@ function continueToAppointment() {
         <button
           @click="continueToAppointment"
           class="flex items-center px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 alert-button"
-          style="border-color: var(--color-muted-grape);"
+          style="border-color: var(--color-muted-grape)"
         >
           Continuar
           <svg
@@ -73,7 +73,12 @@ function continueToAppointment() {
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            ></path>
           </svg>
         </button>
       </div>
@@ -94,7 +99,9 @@ function continueToAppointment() {
 /* Slide up transition for the toast */
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: transform 0.3s, opacity 0.3s;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
 }
 .slide-up-enter-from,
 .slide-up-leave-to {

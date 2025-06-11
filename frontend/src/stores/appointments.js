@@ -92,7 +92,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
   // Check if a time slot is already taken
   function isTimeTaken(hour) {
-      return appointmentsByDate.value.some(appointment => appointment.time === hour)
+    return appointmentsByDate.value.some((appointment) => appointment.time === hour)
   }
 
   const isServiceSelected = computed(() => {

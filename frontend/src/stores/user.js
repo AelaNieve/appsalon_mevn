@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const user = ref({})
   const userAppointments = ref([])
-  const loading = ref(true) 
+  const loading = ref(true)
 
   let logoutTimer = null // Variable to hold the timer ID
 
@@ -42,11 +42,11 @@ export const useUserStore = defineStore('user', () => {
     }
   })
 
-    async function getUserAppointments(user) {
-        const { data } = await AppointmentAPI.getUserAppointments(user)
-        console.log('User appointments fetched:', data)
-        userAppointments.value = data
-    }
+  async function getUserAppointments(user) {
+    const { data } = await AppointmentAPI.getUserAppointments(user)
+    console.log('User appointments fetched:', data)
+    userAppointments.value = data
+  }
 
   async function logout() {
     try {
@@ -85,7 +85,7 @@ export const useUserStore = defineStore('user', () => {
 
   const getUserName = computed(() => (user.value?.name ? user.value?.name : ''))
 
-  const noAppointments = computed(() => userAppointments.value.length == 0 )
+  const noAppointments = computed(() => userAppointments.value.length == 0)
 
   return {
     user,
@@ -95,6 +95,6 @@ export const useUserStore = defineStore('user', () => {
     fetchUser,
     userAppointments,
     noAppointments,
-    loading
+    loading,
   }
 })

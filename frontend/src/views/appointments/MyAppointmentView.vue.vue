@@ -1,10 +1,5 @@
-<script setup>
-</script>
-
+<script setup></script>
 
 <template>
-    <div>
-        Desde Cita
-    </div>
+  <div>Desde Cita</div>
 </template>
-
