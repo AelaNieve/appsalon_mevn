@@ -3,10 +3,14 @@ import { ref, onMounted, computed } from 'vue' // Removed onBeforeUnmount
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router'
 import AuthAPI from '@/api/AuthAPI'
+import AppointmentAPI from '@/api/AppointmentAPI'
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const user = ref({})
+  const userAppointments = ref([])
+  const loading = ref(true) 
+
   let logoutTimer = null // Variable to hold the timer ID
 
   const AUTO_LOGOUT_TIME = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
@@ -29,11 +33,20 @@ export const useUserStore = defineStore('user', () => {
       const { data } = await AuthAPI.auth()
       user.value = data
       startAutoLogoutTimer() // Start the timer when the user is authenticated on mount
+      await getUserAppointments(user.value._id)
     } catch (error) {
       console.log(error)
       router.push({ name: 'login' })
+    } finally {
+      loading.value = false
     }
   })
+
+    async function getUserAppointments(user) {
+        const { data } = await AppointmentAPI.getUserAppointments(user)
+        console.log('User appointments fetched:', data)
+        userAppointments.value = data
+    }
 
   async function logout() {
     try {
@@ -72,11 +85,16 @@ export const useUserStore = defineStore('user', () => {
 
   const getUserName = computed(() => (user.value?.name ? user.value?.name : ''))
 
+  const noAppointments = computed(() => userAppointments.value.length == 0 )
+
   return {
     user,
     logout,
     getUserName,
     startAutoLogoutTimer,
-    fetchUser, // <-- add this
+    fetchUser,
+    userAppointments,
+    noAppointments,
+    loading
   }
 })
