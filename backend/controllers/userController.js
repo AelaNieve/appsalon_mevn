@@ -21,7 +21,7 @@ const getUserAppointments = async (req, res) => {
       .populate("services")
       //.populate({ path: 'user', select: 'name email' })
       .sort({ date: "asc" })
-      .select("-__v -createdAt -updatedAt -user -date -time -totalAmount");
+      .select("-__v -createdAt -updatedAt -user ");
 
     res.json(appointments);
   } catch (error) {
