@@ -2,22 +2,21 @@
 import { useForm, Field, ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import AuthAPI from '@/api/AuthAPI'
 import { useAlertStore } from '@/stores/useAlertStore'
 import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
-const userStore = useUserStore()
 
+const userStore = useUserStore()
 const alertStore = useAlertStore()
 const router = useRouter()
 
-// Validation Schema
+// Validation Schema (no changes needed)
 const schema = yup.object({
   email: yup.string().email('Email no válido').required('El email es obligatorio'),
   password: yup.string().required('La contraseña es obligatoria'),
 })
 
-// Form setup with vee-validate
 const {
   handleSubmit,
   isSubmitting,
@@ -25,60 +24,51 @@ const {
   errors: formErrors,
 } = useForm({
   validationSchema: schema,
-  initialValues: {
-    email: '',
-    password: '',
-  },
+  initialValues: { email: '', password: '' },
 })
 
-// Password Visibility
 const passwordFieldType = ref('password')
 const togglePasswordVisibility = () => {
   passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
 }
 
-// Submission Handler
 const onSubmit = handleSubmit(async (values) => {
   try {
     const { data } = await AuthAPI.login(values)
-    await userStore.fetchUser() // <-- fetch and set user data after login
+    await userStore.fetchUser()
     userStore.startAutoLogoutTimer()
-    alertStore.showAlert(data.msg)
-    router.push({ name: 'home' })
+    alertStore.showAlert(data.msg, 'success')
+    router.push({ name: 'my-appointments' })
   } catch (error) {
-    console.error('Login failed:', error)
-
     let alertMessage = 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.'
-
     if (error.response) {
       alertMessage = error.response.data.msg || alertMessage
-      // If the backend provides specific field errors, you can set them
-      if (error.response.data.errors) {
-        setErrors(error.response.data.errors)
-      }
+      if (error.response.data.errors) setErrors(error.response.data.errors)
     }
     alertStore.showAlert(alertMessage, 'error', 10000)
   }
 })
 
+// Themed input classes
 const inputClass = (fieldName) => [
-  'block w-full rounded-md shadow-sm sm:text-sm p-3.5 border',
+  'block w-full rounded-lg p-3.5 border-2 bg-dark-indigo/50 text-pastel-lilac placeholder:text-muted-grape transition',
   formErrors.value[fieldName]
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+    ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
+    : 'border-muted-grape/50 focus:border-light-mauve focus:ring-light-mauve',
 ]
 </script>
 
 <template>
-  <div class="space-y-4 mb-8 text-center">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white">Iniciar Sesión</h1>
-    <p class="text-lg text-slate-300">Ingresa tus credenciales para acceder a tu cuenta.</p>
+  <div class="space-y-2 mb-8 text-center">
+    <h1 class="text-4xl font-bold text-pastel-lilac">Iniciar Sesión</h1>
+    <p class="text-lg text-light-mauve/90">Accede a tu cuenta para gestionar tus citas.</p>
   </div>
 
-  <div class="bg-white shadow-xl rounded-lg p-8 sm:p-10">
+  <!-- Themed form container -->
+  <div class="bg-deep-plum/60 border border-muted-grape/50 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
     <form @submit="onSubmit" class="space-y-6">
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label for="email" class="block text-sm font-semibold text-pastel-lilac mb-2">Email</label>
         <Field
           name="email"
           id="email"
@@ -86,13 +76,11 @@ const inputClass = (fieldName) => [
           :class="inputClass('email')"
           placeholder="tu@email.com"
         />
-        <ErrorMessage name="email" class="mt-1.5 text-xs text-red-600" />
+        <ErrorMessage name="email" class="mt-1.5 text-xs text-red-400" />
       </div>
 
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1"
-          >Contraseña</label
-        >
+        <label for="password" class="block text-sm font-semibold text-pastel-lilac mb-2">Contraseña</label>
         <div class="relative">
           <Field
             name="password"
@@ -105,54 +93,22 @@ const inputClass = (fieldName) => [
           <button
             type="button"
             @click="togglePasswordVisibility"
-            class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-grape hover:text-light-mauve"
             aria-label="Toggle password visibility"
           >
-            <svg
-              v-if="passwordFieldType === 'password'"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-              />
-            </svg>
-            <svg
-              v-else
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228"
-              />
-            </svg>
+            <!-- SVG icons are fine, no changes needed -->
+            <svg v-if="passwordFieldType === 'password'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
           </button>
         </div>
-        <ErrorMessage name="password" class="mt-1.5 text-xs text-red-600" />
+        <ErrorMessage name="password" class="mt-1.5 text-xs text-red-400" />
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-end">
         <div class="text-sm">
           <RouterLink
             :to="{ name: 'forgot-password' }"
-            class="font-medium text-blue-600 hover:text-blue-500"
+            class="font-medium text-light-mauve hover:text-pastel-lilac transition"
           >
             ¿Olvidaste tu contraseña?
           </RouterLink>
@@ -163,30 +119,9 @@ const inputClass = (fieldName) => [
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-opacity duration-150"
-          :class="{ 'opacity-70 cursor-not-allowed': isSubmitting }"
+          class="w-full flex justify-center items-center py-3 px-4 rounded-full shadow-lg text-base font-bold text-deep-plum bg-gradient-to-r from-light-mauve to-pastel-lilac transform transition-transform duration-300 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <svg
-            v-if="isSubmitting"
-            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
+          <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-deep-plum" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
           <span>{{ isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión' }}</span>
         </button>
       </div>

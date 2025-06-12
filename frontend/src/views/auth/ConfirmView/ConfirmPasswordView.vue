@@ -81,12 +81,11 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 })
 
-// Dynamic class for input fields based on validation state
 const inputClass = (fieldName) => [
-  'block w-full rounded-md shadow-sm sm:text-sm p-3.5 border',
+  'block w-full rounded-lg p-3.5 border-2 bg-dark-indigo/50 text-pastel-lilac placeholder:text-muted-grape transition',
   formErrors.value[fieldName]
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+    ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
+    : 'border-muted-grape/50 focus:border-light-mauve focus:ring-light-mauve',
 ]
 
 // Verify token on component mount

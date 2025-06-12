@@ -24,7 +24,6 @@ const {
 
 const onSubmit = handleSubmit(async (values) => {
   try {
-    // Note: Assumes AuthAPI.requestAccountDeletion is modified to accept { email, hcaptchaToken }
     const { data } = await AuthAPI.requestAccountDeletion({
       email: values.email,
     })
@@ -37,28 +36,28 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-// Helper for dynamic input classes
+// Helper for dynamic input classes - updated to match RequestPasswordView
 const inputClass = (fieldName) => [
-  'block w-full rounded-md shadow-sm sm:text-sm p-3.5 border',
+  'block w-full rounded-lg p-3.5 border-2 bg-dark-indigo/50 text-pastel-lilac placeholder:text-muted-grape transition',
   formErrors.value[fieldName]
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+    ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
+    : 'border-muted-grape/50 focus:border-light-mauve focus:ring-light-mauve',
 ]
 </script>
 
 <template>
-  <div class="space-y-4 mb-8 text-center">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white">Eliminar Tu Cuenta</h1>
-    <p class="text-lg text-slate-300">
+  <div class="space-y-2 mb-8 text-center">
+    <h1 class="text-4xl font-bold text-pastel-lilac">Eliminar Tu Cuenta</h1>
+    <p class="text-lg text-light-mauve/90">
       Ingresa tu email para recibir un enlace de confirmación para eliminar tu cuenta
       permanentemente.
     </p>
   </div>
 
-  <div class="bg-white shadow-xl rounded-lg p-8 sm:p-10">
+  <div class="bg-deep-plum/60 border border-muted-grape/50 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
     <form @submit="onSubmit" class="space-y-6">
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label for="email" class="block text-sm font-semibold text-pastel-lilac mb-2">Email</label>
         <Field
           name="email"
           id="email"
@@ -66,40 +65,16 @@ const inputClass = (fieldName) => [
           :class="inputClass('email')"
           placeholder="tu@email.com"
         />
-        <ErrorMessage name="email" class="mt-1.5 text-xs text-red-600" />
+        <ErrorMessage name="email" class="mt-1.5 text-xs text-red-400" />
       </div>
 
-      <div class="flex flex-col items-center gap-4">
-        <button
-          type="submit"
-          :disabled="isSubmitting"
-          class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-opacity duration-150"
-          :class="{ 'opacity-70 cursor-not-allowed': isSubmitting }"
-        >
-          <svg
-            v-if="isSubmitting"
-            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <span>{{ isSubmitting ? 'Enviando...' : 'Solicitar Eliminación' }}</span>
-        </button>
-      </div>
+      <button
+        type="submit"
+        :disabled="isSubmitting"
+        class="w-full flex justify-center items-center py-3 px-4 rounded-full shadow-lg text-base font-bold text-deep-plum bg-gradient-to-r from-light-mauve to-pastel-lilac transform transition-transform duration-300 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        <span>{{ isSubmitting ? 'Enviando...' : 'Solicitar Eliminación' }}</span>
+      </button>
     </form>
   </div>
 </template>
