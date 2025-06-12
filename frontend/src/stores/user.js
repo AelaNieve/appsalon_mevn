@@ -111,6 +111,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  const isAdmin = computed(() => {
+    return user.value?.admin || false
+  })
+
   return {
     user,
     logout,
@@ -121,5 +125,6 @@ export const useUserStore = defineStore('user', () => {
     noAppointments,
     loading,
     fetchUserAppointments,
+    isAdmin,
   }
 })

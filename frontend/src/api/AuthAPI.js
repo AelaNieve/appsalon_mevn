@@ -78,6 +78,14 @@ export default {
     // No need to set the Authorization header manually.
     return api.get('/auth/user')
   },
+    /**
+   * NEW: Checks if the user has admin privileges.
+   * The backend will return a 403 error if the user is not an admin.
+   * @returns {Promise<Object>} A promise that resolves with the user data if the user is an admin.
+   */
+  adminAuth() {
+    return api.get('/auth/admin')
+  },
   logout() {
     // This endpoint on your backend should be responsible for clearing the JWT cookie.
     return api.post('/auth/logout')

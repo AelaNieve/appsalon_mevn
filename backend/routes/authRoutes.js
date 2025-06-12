@@ -9,6 +9,7 @@ import {
   forgotPassword,
   resetPassword,
   user,
+  admin,
 } from "../controllers/authControllers.js";
 import authMiddleware from "../middleware/authMIddleware.js";
 
@@ -41,5 +42,6 @@ router.post("/logout", (req, res) => {
 
 // Area con autentificación requiere un JWT
 router.get("/user", authMiddleware, user);
+router.get("/admin", authMiddleware, admin);
 
 export default router;

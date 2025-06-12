@@ -633,6 +633,14 @@ const user = async (req, res) => {
   res.json(user);
 };
 
+const admin = async (req, res) => {
+  const { user } = req;
+  if (!user.admin) {
+    return res.status(403).json({ msg: "Acceso denegado. No eres admin." });
+  }
+  res.json(user);
+};
+
 export {
   register,
   verifyAccount,
@@ -642,4 +650,5 @@ export {
   forgotPassword,
   resetPassword,
   user,
+  admin,
 };

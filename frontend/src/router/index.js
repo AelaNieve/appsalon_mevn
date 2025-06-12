@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
 import AppointmentsLayout from '@/components/AppointmentsLayout.vue'
+import AdminLayout from '../components/AdminLayout.vue'
 import AuthAPI from '@/api/AuthAPI'
 
 const router = createRouter({
@@ -13,6 +14,12 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+        {
+      path: '/admin',
+      name: 'admin',
+      component: AdminLayout,
+      meta: { requiresAdmin: true },
     },
     {
       path: '/reservaciones',
@@ -117,40 +124,49 @@ const router = createRouter({
     },
   ],
 })
-
-// --- START OF FIX ---
-// Replaced the old guard with a more robust one.
 router.beforeEach(async (to, from, next) => {
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const isAuthRoute = to.matched.some((record) => record.name === 'auth')
 
-  let isAuthenticated = false
-  try {
-    // We check for a valid session on every navigation.
-    await AuthAPI.auth()
-    isAuthenticated = true
-  } catch (error) {
-    isAuthenticated = false
+  if (requiresAdmin) {
+    // 1. This route requires admin access.
+    try {
+      await AuthAPI.adminAuth() // Attempt to authenticate as an admin.
+      next() // User is an admin, allow access.
+    } catch (error) {
+      // Failed admin check. The user is either not logged in or not an admin.
+      // We'll redirect to the user's appointments page as a safe fallback.
+      next({ name: 'home' })
+    }
+  } else if (requiresAuth) {
+    // 2. This route requires standard authentication.
+    try {
+      await AuthAPI.auth() // Attempt to authenticate as a regular user.
+      next() // User is logged in, allow access.
+    } catch (error) {
+      // User is not logged in.
+      next({ name: 'login' }) // Redirect to login page.
+    }
+  } else {
+    // 3. This is a public route (or an auth route like /login).
+    let isAuthenticated = false
+    try {
+      await AuthAPI.auth()
+      isAuthenticated = true
+    } catch (error) {
+      // User is not authenticated, which is fine for public routes.
+    }
+
+    const isAuthRoute = to.matched.some((record) => record.name === 'auth')
+    if (isAuthRoute && isAuthenticated) {
+      // If the user is already logged in, redirect them away from auth pages.
+      next({ name: 'home' })
+    } else {
+      // Otherwise, allow access to the public route.
+      next()
+    }
   }
-
-  if (requiresAuth && !isAuthenticated) {
-    // Case 1: Trying to access a protected route without being authenticated.
-    // Redirect to login.
-    return next({ name: 'login' })
-  }
-
-  if (isAuthRoute && isAuthenticated) {
-    // Case 2: Trying to access an auth page (login, register) while already authenticated.
-    // Redirect to the main app view.
-    return next({ name: 'my-appointments' })
-  }
-
-  // Case 3: All other scenarios are allowed.
-  // - Accessing a public route like Home (authenticated or not).
-  // - Accessing a protected route (when authenticated).
-  // - Accessing an auth route (when not authenticated).
-  next()
 })
-// --- END OF FIX ---
+// --- END OF REPLACEMENT ---
 
 export default router

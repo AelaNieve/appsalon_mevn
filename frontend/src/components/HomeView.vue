@@ -128,6 +128,14 @@ const handleCTA = () => {
           </div>
           <nav class="flex flex-1 flex-col justify-between">
             <ul class="flex flex-col gap-6 text-center">
+                    <li v-if="user.isAdmin">
+        <button
+          @click="router.push({ name: 'admin' })"
+          class="block w-full rounded-full bg-light-mauve px-6 py-3 text-base font-semibold text-deep-plum shadow-md transition hover:bg-muted-grape hover:text-dark-indigo"
+        >
+          Panel de Administración
+        </button>
+      </li>
               <li>
                 <RouterLink
                   :to="{ name: 'my-appointments' }"
