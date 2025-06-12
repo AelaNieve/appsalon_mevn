@@ -93,26 +93,24 @@ const handleCancel = async () => {
     </div>
 
     <div class="flex flex-col md:flex-row gap-3 mt-auto">
-                    <button
-        
-          class="w-full text-center px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-muted-grape text-white hover:bg-deep-plum"
-        >
-          Editar Cita
-        </button>
-              <button
-        
-        @click="handleCancel"
-          class="w-full px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-red-600 text-white hover:bg-red-700"
-        >
-          Cancelar Cita
-        </button>
-      <!--
         <RouterLink
           :to="{ name: 'edit-appointment', params: { id: appointment._id } }"
           class="w-full text-center px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-muted-grape text-white hover:bg-deep-plum"
         >
           Editar Cita
         </RouterLink>
+        <button
+          @click="handleCancel"
+          class="w-full px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-red-600 text-white hover:bg-red-700"
+        >
+          Cancelar Cita
+        </button>
+      <!--
+
+          class="w-full text-center px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-muted-grape text-white hover:bg-deep-plum"
+        >
+          Editar Cita
+
         <button
           @click="handleCancel"
           class="w-full px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-red-600 text-white hover:bg-red-700"

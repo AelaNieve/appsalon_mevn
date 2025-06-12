@@ -343,7 +343,7 @@ const verifyAccount = async (req, res) => {
 const login = async (req, res) => {
   const generateJWT = (id) => {
     const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-      expiresIn: "2h", // Change from "2h" to "15m"
+      expiresIn: "1h", // Change from "2h" to "15m"
     });
     return token;
   };
@@ -383,7 +383,7 @@ const login = async (req, res) => {
         httpOnly: true, // Prevents JS access
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Mitigates CSRF attacks
-        maxAge: 1000 * 60 * 60 * 2, // 2 hours (should match JWT expiry)
+        maxAge: 1000 * 60 * 60 * 1, // 2 hours (should match JWT expiry)
       });
 
       //console.log(colors.green.bold(`Sesión Iniciada ${user.name}`));

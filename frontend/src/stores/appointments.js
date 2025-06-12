@@ -5,10 +5,11 @@ import { useRouter } from 'vue-router'
 import AppointmentAPI from '@/api/AppointmentAPI'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
+  const appointmentId = ref('')
   const services = ref([])
   const date = ref('') // Date for the appointment
-  const hours = ref([]) // Available hours
   const time = ref('') // Selected time
+  const hours = ref([]) // Available hours
   const appointmentsByDate = ref([]) // To store appointments for the selected date
   const router = useRouter()
 
@@ -48,14 +49,28 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     // Fetch appointments for the selected date from the API
     try {
       const { data } = await AppointmentAPI.getByDate(newDate)
-      appointmentsByDate.value = data
+      if(appointmentId.value) {
+        appointmentsByDate.value = data.filter( appointment => appointment._id !==  appointmentId.value)
+        time.value = data.find(appointment => appointment._id == appointmentId.value).time
+        
+      } else {
+        appointmentsByDate.value = data
+    }
     } catch (error) {
       console.error('Error fetching appointments:', error)
       alertStore.showAlert('Error al consultar las citas.', 'error', 3000)
       appointmentsByDate.value = []
     }
+
   })
 
+    function setSelectedAppointment(appointment) {
+      services.value = appointment.services
+      date.value = appointment.date.substring(0, 10)
+      time.value = appointment.time
+      appointmentId.value = appointment._id
+      console.log(appointmentId.value)
+  }
   function onServiceSelected(service) {
     if (services.value.some((selectedService) => selectedService._id == service._id)) {
       services.value = services.value.filter(
@@ -132,5 +147,6 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     isDateSelected,
     isValidReservation,
     isTimeTaken,
+    setSelectedAppointment,
   }
 })

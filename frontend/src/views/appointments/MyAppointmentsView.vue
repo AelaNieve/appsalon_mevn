@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue' 
 import { useUserStore } from '../../stores/user.js'
 import Appointment from './MyAppointmentView.vue'
 import { useRouter } from 'vue-router'
@@ -6,16 +7,15 @@ import { useRouter } from 'vue-router'
 const user = useUserStore()
 const router = useRouter()
 
-// Function to navigate to the new appointment/services page
+// Función para navegar a la nueva página de citas/servicios
 function bookNewAppointment() {
-  // Assuming 'new-appointment' is the name of the route that leads to your ServicesView
   router.push({ name: 'new-appointment' })
 }
 
-// Props
-const reloadPage = () => {
-  window.location.reload()
-}
+// Cargar las citas cada vez que el componente se monta
+onMounted(() => {
+  user.fetchUserAppointments()
+})
 </script>
 
 <template>
@@ -77,30 +77,6 @@ const reloadPage = () => {
             style="border-color: var(--color-muted-grape); color: var(--color-deep-plum);"
           >
             Agendar Cita
-            <svg
-              class="w-5 h-5 ml-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              ></path>
-            </svg>
-          </button>
-          <p class="text-md text-muted-grape mb-4">
-            ¿Acabas de agendar una cita? Recarga la página para ver tus citas.
-          </p>
-          <button
-            @click="reloadPage"
-            class="flex items-center px-6 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 hover:bg-white/50"
-            style="border-color: var(--color-muted-grape); color: var(--color-deep-plum);"
-          >
-            Recargar Página
             <svg
               class="w-5 h-5 ml-2"
               fill="none"
