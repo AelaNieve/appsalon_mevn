@@ -466,11 +466,7 @@ const requestAccountDeletion = async (req, res) => {
       email: user.email,
       token: user.deleteToken,
     });
-    console.log(
-      colors.blue.bold(
-        `Enlace de confirmación para eliminar cuenta enviado a ${email}.`
-      )
-    );
+    //console.log(colors.blue.bold(`Enlace de confirmación para eliminar cuenta enviado a ${email}.`));
     return res.status(200).json({ msg: commonError });
   } catch (error) {
     console.error(
@@ -562,11 +558,7 @@ const forgotPassword = async (req, res) => {
       email: user.email,
       token: resetToken,
     });
-    console.log(
-      colors.blue.bold(
-        `Email de recuperación de contraseña enviado a ${email}.`
-      )
-    );
+    //console.log(colors.blue.bold(`Email de recuperación de contraseña enviado a ${email}.`));
     return res.status(200).json({ msg: commonError });
   } catch (error) {
     console.error(

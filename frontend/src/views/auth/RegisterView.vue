@@ -17,13 +17,13 @@ const captcha_KEY = import.meta.env.VITE_CAPTCHA_KEY
 const hcaptchaToken = ref(null)
 
 const onCaptchaVerified = (token) => {
-  console.log('hCaptcha token:', token)
+  //console.log('hCaptcha token:', token)
   hcaptchaToken.value = token
   // You would typically include this token in your registration API call
 }
 
 const onCaptchaExpired = () => {
-  console.log('hCaptcha expired, please re-verify.')
+  //console.log('hCaptcha expired, please re-verify.')
   hcaptchaToken.value = null // Clear the token if it expires
   alertStore.showAlert('El captcha ha expirado. Por favor, re-verifica.', 'warning')
 }

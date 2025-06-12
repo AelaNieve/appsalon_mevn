@@ -45,7 +45,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function getUserAppointments(user) {
     const { data } = await AppointmentAPI.getUserAppointments(user)
-    console.log('User appointments fetched:', data)
+    //console.log('User appointments fetched:', data)
     userAppointments.value = data
   }
 

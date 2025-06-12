@@ -10,11 +10,11 @@ export const userServicesStore = defineStore('services', () => {
       const { data } = await servicesAPI.all()
       // Access data.services because your backend now returns an object with a 'services' key
       services.value = data.services
-      console.log(data)
+      //console.log(data)
     } catch (error) {
       console.log(error)
     }
-    console.log(services)
+    //console.log(services)
   })
   return {
     services,

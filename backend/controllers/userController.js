@@ -4,7 +4,7 @@ const getUserAppointments = async (req, res) => {
   const { user } = req.params;
 
   if (user !== req.user._id.toString() && !req.user.admin) {
-    console.log("Acceso Denegado: User ID mismatch");
+    //console.log("Acceso Denegado: User ID mismatch");
     return res.status(400).json({ msg: "Acceso Denegado" });
   }
 

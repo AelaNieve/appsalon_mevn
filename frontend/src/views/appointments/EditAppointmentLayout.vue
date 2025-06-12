@@ -15,11 +15,11 @@
         try {
             appointments.clearAppointmentData()
             const { data } = await AppointmentAPI.getById(id)
-            console.log('Fetching appointment with ID:', data)
+            //console.log('Fetching appointment with ID:', data)
 
             appointments.setSelectedAppointment(data)
         } catch (error) {
-            //console.error('Error fetching appointment:', error)
+            console.error(error)
             router.push({name: 'my-appointments'})
         }
     })
