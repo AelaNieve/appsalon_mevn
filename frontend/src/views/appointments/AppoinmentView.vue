@@ -2,33 +2,33 @@
 import SelectedService from '@/views/appointments/SelectedService.vue'
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
-import { computed, ref } from 'vue' // 1. Import ref
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { computed, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
-const redirectToSelectServices = () => {
-  router.push({ name: 'new-appointment' })
-}
+const router = useRouter()
+const route = useRoute()
 
 const appointments = useAppointmentsStore()
-
-// 2. Add a state to track submission status
 const isSubmitting = ref(false)
 
-// 3. Create a handler function to wrap the saveAppointment action
+const redirectToSelectServices = () => {
+  if (route.name === 'edit-appointment-details') {
+    router.push({ name: 'edit-appointment' })
+  } else {
+    router.push({ name: 'new-appointment' })
+  }
+}
+
 const handleSaveAppointment = async () => {
   isSubmitting.value = true
   try {
     await appointments.saveAppointment()
-    // On success, the user is likely redirected, so no need to reset isSubmitting
   } catch (error) {
     console.error('Failed to save appointment:', error)
-    // If saving fails, re-enable the button
     isSubmitting.value = false
   }
 }
 
-// Get today's date in 'YYYY-MM-DD' format for the min attribute
 const today = computed(() => {
   const d = new Date()
   const year = d.getFullYear()
@@ -37,7 +37,6 @@ const today = computed(() => {
   return `${year}-${month}-${day}`
 })
 
-// Calculate the date two months from today for the max attribute
 const maxDate = computed(() => {
   const d = new Date()
   d.setMonth(d.getMonth() + 2) // Add two months

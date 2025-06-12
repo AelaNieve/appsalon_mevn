@@ -60,7 +60,6 @@ export const useAppointmentsStore = defineStore('appointments', () => {
         } 
     } catch (error) {
       console.error('Error fetching appointments:', error)
-      alertStore.showAlert('Error al consultar las citas.', 'error', 3000)
       appointmentsByDate.value = []
     }
   })

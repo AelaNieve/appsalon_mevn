@@ -2,13 +2,13 @@
 import ServiceItem from './ServiceItem.vue'
 import { userServicesStore } from '../../stores/services.js'
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAppointmentsStore } from '../../stores/appointments.js'
 
 const servicesDisplayStore = userServicesStore()
-
 const appointmentsStore = useAppointmentsStore()
 const router = useRouter()
+const route = useRoute()
 const showAlert = ref(false)
 
 // When one or more services are selected the alert will be shown automatically.
@@ -23,7 +23,11 @@ watch(
 
 function continueToAppointment() {
   showAlert.value = false
-  router.push({ name: 'appointment-details' })
+  if (route.name === 'edit-appointment') {
+    router.push({ name: 'edit-appointment-details' })
+  } else {
+    router.push({ name: 'appointment-details' })
+  }
 }
 </script>
 
