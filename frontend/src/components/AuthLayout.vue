@@ -39,7 +39,7 @@ const alertStore = useAlertStore()
           v-for="authRoute in authRoutes"
           :key="authRoute.name"
           :to="{ name: authRoute.name }"
-          class="text-sm font-semibold uppercase text-muted-grape transition hover:text-light-mauve"
+          class="text-sm text-center font-semibold uppercase text-muted-grape transition hover:text-light-mauve"
         >
           {{ authRoute.text }}
         </RouterLink>
