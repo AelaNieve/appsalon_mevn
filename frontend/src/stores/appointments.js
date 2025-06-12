@@ -3,9 +3,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from './useAlertStore' // Import the alert store
 import { useRouter } from 'vue-router'
 import AppointmentAPI from '@/api/AppointmentAPI'
+import { useUserStore } from './user'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   
+  const user = useUserStore()
   const appointmentId = ref('') // To store the selected appointment ID
   const services = ref([])
   const date = ref('') // Date for the appointment
@@ -51,26 +53,27 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     try {
       const { data } = await AppointmentAPI.getByDate(newDate)
       if (!appointmentId.value) {
-        //console.log('Nuevas Citas')
         appointmentsByDate.value = data
+      } else {
+        appointmentsByDate.value = data.filter(appointment => appointment._id !== appointmentId.value)
+        const appointment = data.find(appointment => appointment._id === appointmentId.value)
+        if (appointment) {
+          time.value = appointment.time
+        }
       }
-      else {
-        appointmentsByDate.value = data.filter( appointment => appointment._id !==  appointmentId.value)
-        time.value = data.filter( appointment => appointment._id ===  appointmentId.value)[0].time
-        } 
     } catch (error) {
       console.error('Error fetching appointments:', error)
       appointmentsByDate.value = []
     }
   })
 
-    function setSelectedAppointment(appointment) {
-      services.value = appointment.services
-      date.value = appointment.date.substring(0, 10)
-      time.value = appointment.time
-      appointmentId.value = appointment._id
-
+  function setSelectedAppointment(appointment) {
+    services.value = appointment.services
+    date.value = appointment.date.substring(0, 10)
+    time.value = appointment.time
+    appointmentId.value = appointment._id
   }
+
   function onServiceSelected(service) {
     if (services.value.some((selectedService) => selectedService._id == service._id)) {
       services.value = services.value.filter(
@@ -94,7 +97,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     }
     if (appointmentId.value) {
       try {
-        await AppointmentAPI.update(appointmentId.value, appointment) 
+        await AppointmentAPI.update(appointmentId.value, appointment)
         alertStore.showAlert('Cita actualizada de manera exitosa', 'success', 3000)
       } catch (error) {
         console.error('Error actualizando la cita:', error)
@@ -103,18 +106,21 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     } else {
       try {
         await AppointmentAPI.create(appointment)
-
         alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
       } catch (error) {
         console.error('Error creating appointment:', error)
       }
     }
     clearAppointmentData()
-    router.push({ name: 'my-appointments' })
+    if(user.isAdmin) {
+      router.push({ name: 'admin-appointments' })
+    } else {
+      router.push({ name: 'my-appointments' })
+    }
   }
 
-
   function clearAppointmentData() {
+    appointmentId.value = ''
     services.value = []
     date.value = ''
     time.value = ''
@@ -123,13 +129,13 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
   async function deleteAppointment(id) {
     try {
-        await AppointmentAPI.remove(id)
-        alertStore.showAlert('Cita eliminada de manera exitosa', 'success', 3000)
+      await AppointmentAPI.remove(id)
+      alertStore.showAlert('Cita eliminada de manera exitosa', 'success', 3000)
     } catch (error) {
-        console.error('Error deleting appointment:', error)
-        alertStore.showAlert('No se pudo eliminar la cita', 'error', 3000)
-        // Re-throw the error so the component knows the operation failed
-        throw error
+      console.error('Error deleting appointment:', error)
+      alertStore.showAlert('No se pudo eliminar la cita', 'error', 3000)
+      // Re-throw the error so the component knows the operation failed
+      throw error
     }
   }
 
