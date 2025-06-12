@@ -124,14 +124,13 @@ export const useAppointmentsStore = defineStore('appointments', () => {
 
   async function deleteAppointment(id) {
     try {
-      //console.log('Eliminando cita con ID:', id)
-      await AppointmentAPI.remove(id)
-      alertStore.showAlert('Cita eliminada de manera exitosa', 'success', 3000)
-      clearAppointmentData()
-      router.push({ name: 'my-appointments' })
+        await AppointmentAPI.remove(id)
+        alertStore.showAlert('Cita eliminada de manera exitosa', 'success', 3000)
     } catch (error) {
-      console.error('Error deleting appointment:', error)
-      alertStore.showAlert('No se pudo eliminar la cita', 'error', 3000)
+        console.error('Error deleting appointment:', error)
+        alertStore.showAlert('No se pudo eliminar la cita', 'error', 3000)
+        // Re-throw the error so the component knows the operation failed
+        throw error
     }
   }
 

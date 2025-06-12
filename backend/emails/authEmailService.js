@@ -1,3 +1,4 @@
+
 import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
 import { validateMailtrapConfig } from "../helpers/errorHandling.js";
@@ -190,7 +191,7 @@ export async function sendAccountBlockedEmail({ name, email }) {
     mailtrapConfig.mailtrapPass
   );
 
-  const recoveryLink = `${process.env.FRONTEND_URL}/problemas/requerir-resetear-contraseña`;
+  const recoveryLink = `${process.env.FRONTEND_URL}/auth/problemas/requerir-resetear-contraseña`;
 
   const emailOptions = {
     from: '"AppSalon Co." <no-reply@appsalon.com>',

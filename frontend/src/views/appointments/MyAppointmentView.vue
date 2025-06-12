@@ -2,14 +2,12 @@
 import { computed } from 'vue'
 import { formatCurrency } from '../../helpers'
 import { useAppointmentsStore } from '../../stores/appointments'
+import { useUserStore } from '../../stores/user' // 1. Import the user store
 
 const appointmentStore = useAppointmentsStore()
+const userStore = useUserStore() // 2. Create an instance of the user store
 
-// Props
-const reloadPage = () => {
-  window.location.reload()
-}
-
+// Props (should be placed below the imports)
 const props = defineProps({
   appointment: {
     type: Object,
@@ -31,21 +29,19 @@ const displayDate = computed(() => {
 /**
  * Handles the cancellation of an appointment.
  * Shows a confirmation dialog before proceeding.
- * On success, it shows an alert and refreshes the appointment list.
+ * On success, it tells the userStore to refresh the appointment list.
  */
 
 const handleCancel = async (id) => {
   if (confirm('¿Estás seguro de que quieres cancelar esta cita?')) {
     try {
-      //console.log('Cancelando cita con ID:', id)
-      await appointmentStore.deleteAppointment(id) // Assumes this API method exists
-      // Refresh the user's appointments list after cancellation
-      //await new Promise(resolve => setTimeout(resolve, 5000))
-      //reloadPage()
-      return
+      // 3. Call the modified deleteAppointment function
+      await appointmentStore.deleteAppointment(id)
+      
+      // 4. After successful deletion, refresh the user's appointments list
+      await userStore.fetchUserAppointments()
     } catch (error) {
-      //reloadPage()
-      console.error('Error al cancelar la cita:', error)
+      console.error('La cancelación de la cita falló en el componente:', error)
     }
   }
 }
