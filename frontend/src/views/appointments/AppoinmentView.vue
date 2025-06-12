@@ -171,7 +171,7 @@ const maxDate = computed(() => {
       <div v-if="appointments.isValidReservation" class="mt-6 flex justify-center px-8 pb-8">
         <button
           class="w-full md:w-auto bg-gradient-to-r from-deep-plum via-muted-grape to-dark-indigo p-4 rounded-xl text-white font-extrabold text-lg hover:scale-105 hover:shadow-2xl transition-all tracking-wide shadow-lg ring-2 ring-pastel-lilac/40"
-          @click="appointments.createAppointment"
+          @click="appointments.saveAppointment"
         >
           <span class="inline-flex items-center gap-2">
             <svg

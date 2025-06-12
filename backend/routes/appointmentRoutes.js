@@ -3,6 +3,7 @@ import {
   createAppointment,
   getAppointmentsByDate,
   getAppointmentById,
+  updateAppointment
 } from "../controllers/appointmentControllers.js";
 import authMiddleware from "../middleware/authMIddleware.js";
 
@@ -15,5 +16,6 @@ router
 
 router.route('/:id')
   .get(authMiddleware, getAppointmentById)
+  .put(authMiddleware, updateAppointment)
 
 export default router;

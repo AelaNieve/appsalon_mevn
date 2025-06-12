@@ -86,17 +86,22 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     }
   }
 
-  async function createAppointment() {
+  async function saveAppointment() {
     const appointment = {
       services: services.value.map((service) => service._id),
       date: date.value,
       time: time.value,
       totalAmount: totalAmount.value,
     }
-    await AppointmentAPI.create(appointment)
-    clearAppointmentData()
-    router.push({ name: 'my-appointments' })
-    alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
+    try {
+      
+      await AppointmentAPI.create(appointment)
+      clearAppointmentData()
+      router.push({ name: 'my-appointments' })
+      alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
+    } catch (error) {
+      console.error('Error creating appointment:', error)
+    }
   }
 
   function clearAppointmentData() {
@@ -137,7 +142,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
   return {
     totalAmount,
     services,
-    createAppointment,
+    saveAppointment,
     onServiceSelected,
     isServiceSelected,
     noServicesSelected,
