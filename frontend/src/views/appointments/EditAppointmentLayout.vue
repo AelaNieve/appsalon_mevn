@@ -14,7 +14,7 @@
     onMounted(async () => {
         try {
             const { data } = await AppointmentAPI.getById(id)
-            console.log('Fetching appointment with ID:', data)
+            //console.log('Fetching appointment with ID:', data)
 
             appointments.setSelectedAppointment(data)
         } catch (error) {

@@ -58,8 +58,6 @@ export const useUserStore = defineStore('user', () => {
       userAppointments.value = [] // Clear the user appointments in the store
       const appointmentsStore = useAppointmentsStore()  // Get the appointments store
       appointmentsStore.services = []  // Clear the selected services
-      appointmentsStore.date = ''      // Reset the appointment date
-      appointmentsStore.time = ''      // Reset the appointment time
       if (logoutTimer) {
         // Clear the timer when manually logging out
         clearTimeout(logoutTimer)
@@ -67,13 +65,12 @@ export const useUserStore = defineStore('user', () => {
       router.push({ name: 'login' }) // Redirect to the login page
     } catch (error) {
       console.error('Error during logout:', error)
-      // Even if there's an error on the backend, clear local state and redirect
+      // Handle any errors during logout (e.g., show a notification)
+      // Even if there's an error on the backend, we clear local state and redirect
       user.value = {}
       userAppointments.value = [] // Clear the user appointments even on error
       const appointmentsStore = useAppointmentsStore()  // Get the appointments store
       appointmentsStore.services = []  // Clear the selected services
-      appointmentsStore.date = ''      // Reset the appointment date
-      appointmentsStore.time = ''      // Reset the appointment time
       if (logoutTimer) {
         clearTimeout(logoutTimer)
       }

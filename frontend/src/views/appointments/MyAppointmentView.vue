@@ -25,7 +25,7 @@ const alertStore = useAlertStore()
 const displayDate = computed(() => {
   // Assuming appointment.date is in a format that the Date constructor can parse
   const date = new Date(props.appointment.date)
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }
   // Using toLocaleDateString for better formatting, e.g., "lunes, 10 de junio de 2025"
   return new Intl.DateTimeFormat('es-ES', options).format(date)
 })
