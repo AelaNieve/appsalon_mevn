@@ -1,33 +1,42 @@
 import Appointment from "../models/appointment.js";
 
 const getUserAppointments = async (req, res) => {
-  const { user } = req.params;
+    const { user } = req.params;
 
-  if (user !== req.user._id.toString()) {
-    //console.log("Acceso Denegado: User ID mismatch");
-    return res.status(400).json({ msg: "Acceso Denegado" });
-  }
+    if (user !== req.user._id.toString()) {
+        return res.status(400).json({ msg: "Acceso Denegado" });
+    }
 
-  try {
-    // Get the current date and set the time to 00:00:00.000Z (UTC)
-    const now = new Date();
-    now.setUTCHours(0, 0, 0, 0);
+    try {
+        const now = new Date();
+        now.setUTCHours(0, 0, 0, 0);
 
-    const query = req.user.admin
-      ? { date: { $gte: now } }
-      : { user, date: { $gte: now } };
+        let query;
 
-    const appointments = await Appointment.find(query)
-      .populate("services")
-      //.populate({ path: 'user', select: 'name email' })
-      .sort({ date: "asc" })
-      .select("-__v -createdAt -updatedAt -user ");
+        if (req.user.admin) {
+            // If the user is an admin, fetch all appointments and populate user info.
+            query = Appointment.find({ date: { $gte: now } })
+                .populate("services")
+                .populate({
+                    path: "user",
+                    select: "name email", // Populate the user's name and email.
+                })
+                .sort({ date: "asc" });
+        } else {
+            // If a regular user, fetch only their appointments.
+            // Populating the user field isn't necessary here.
+            query = Appointment.find({ user, date: { $gte: now } })
+                .populate("services")
+                .sort({ date: "asc" });
+        }
 
-    res.json(appointments);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: "Server Error" });
-  }
+        const appointments = await query;
+        res.json(appointments);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Server Error" });
+    }
 };
 
 export { getUserAppointments };
