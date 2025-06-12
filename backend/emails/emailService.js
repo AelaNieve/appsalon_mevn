@@ -344,7 +344,7 @@ export async function sendEmailUpdateAppointment({date, time, totalAmount}) {
   }
 }
 
-export async function sendEmailCancelledAppointment({ user, date, time }) {
+export async function sendEmailCancelledAppointment({ date, time }) {
     let mailtrapConfig;
     try {
       mailtrapConfig = validateMailtrapConfig();
@@ -365,17 +365,14 @@ export async function sendEmailCancelledAppointment({ user, date, time }) {
       from: '"AppSalon Co." <citas@appsalon.com>',
       to: adminEmail,
       subject: "❌ AppSalon - Cita Cancelada ❌",
-      text: `Hola Admin,\n\nSe ha cancelado una cita.\n\nCliente: ${user.name}\nFecha de la cita cancelada: ${date}\nHora de la cita cancelada: ${time}\n\nSaludos,\nEl equipo de AppSalon`,
+      text: `Hola Cliente,\n\nSe ha cancelado una cita.\n\nSaludos,\nEl equipo de AppSalon`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <h2 style="color: #C0392B;">¡Una Cita ha sido Cancelada!</h2>
-          <p>Hola Admin,</p>
-          <p>El cliente <strong>${user.name}</strong> ha cancelado la siguiente cita:</p>
-          <ul style="list-style-type: none; padding: 0;">
-              <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Fecha:</strong> ${date}</li>
-              <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Hora:</strong> ${time}</li>
-          </ul>
-          <p>Este horario ha quedado libre en tu agenda.</p>
+          <p>Hola Cliente,</p>
+          <p>Su cita ha sido cancelada:</p>
+
+          <p>Esperamos que cree una cita pronto.</p>
           <hr>
           <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
         </div>

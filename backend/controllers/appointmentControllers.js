@@ -113,13 +113,10 @@ const updateAppointment = async (req, res) => {
     }
 
     try {
-        await appointment.deleteOne()
-        //const result = await appointment.deleteOne()
 
-        //await sendEmailCancelledAppointment({
-        //    date: formatDate( result.date ),
-        //    time: result.time
-        //})
+        const result = await appointment.deleteOne()
+
+    await sendEmailCancelledAppointment({});
 
         res.json({msg: 'Cita Cancelada Exitosamente'})
     } catch (error) {
