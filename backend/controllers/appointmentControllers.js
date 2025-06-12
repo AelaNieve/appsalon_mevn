@@ -1,5 +1,6 @@
 import Appointment from "../models/appointment.js";
 import { isValidObjectId, serviceExists } from "../helpers/errorHandling.js";
+import { sendEmailUpdateAppointment, sendEmailCancelledAppointment, sendEmailNewAppointment } from "../emails/emailService.js";
 
 const createAppointment = async (req, res) => {
   try {
@@ -8,7 +9,11 @@ const createAppointment = async (req, res) => {
     //console.log(appointment)
     const newAppointment = new Appointment(appointment);
     const result = await newAppointment.save();
-    //console.log(result)
+    //console.log(result);
+    await sendEmailNewAppointment({
+      date: result.date.toISOString().substring(0, 10),
+      time: result.time
+    });
     res.json({
       msg: "Cita creada correctamente",
     });
@@ -26,6 +31,7 @@ const getAppointmentsByDate = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "Error al obtener las citas" });
+
   }
 };
 
@@ -73,18 +79,20 @@ const updateAppointment = async (req, res) => {
 
     try {
     const result = await appointment.save()
+    //console.log(result);
 
-    //    await sendEmailUpdateAppointment({
-    //        date: formatDate( result.date ),
-    //        time: result.time
-    //    })
-//
-        res.json({
-            msg: 'Cita Actualizada Correctamente'
-       })
-    } catch (error) {
-        console.log(error)
-    }
+    await sendEmailUpdateAppointment({
+      date: result.date.toISOString().substring(0, 10),
+      time: result.time,
+      totalAmount: result.totalAmount
+    });
+    res.json({
+      msg: 'Cita Actualizada Correctamente'
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: 'Error al actualizar la cita' });
+  }
 };
 
     const deleteAppointment = async (req, res) => {
@@ -116,6 +124,7 @@ const updateAppointment = async (req, res) => {
         res.json({msg: 'Cita Cancelada Exitosamente'})
     } catch (error) {
         console.log(error)
+        res.status(500).json({ msg: 'Error al eliminar la cita' });
     }
 
 

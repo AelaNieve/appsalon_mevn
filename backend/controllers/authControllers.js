@@ -10,7 +10,7 @@ import {
   sendDeletionConfirmationEmail,
   sendPasswordRecoveryEmail,
   sendAccountBlockedEmail,
-} from "../emails/authEmailService.js";
+} from "../emails/emailService.js";
 
 // --- Para prevenir attaquens de spam de creación y eliminación de cuentas ---
 const registrationAttempts = new Map(); // Stores IP addresses and their request timestamps

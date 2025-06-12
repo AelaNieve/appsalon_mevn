@@ -1,4 +1,3 @@
-
 import { createTransport } from "../config/nodemailer.js";
 import colors from "colors";
 import { validateMailtrapConfig } from "../helpers/errorHandling.js";
@@ -230,4 +229,172 @@ export async function sendAccountBlockedEmail({ name, email }) {
     );
     throw error; // Propagar el error para que el controlador lo maneje si es necesario
   }
+}
+
+// --- NEW FUNCTIONS INTEGRATED BELOW ---
+
+export async function sendEmailNewAppointment({ date, time }) {
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error("Mailtrap configuration missing for new appointment email.");
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
+
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@appsalon.com";
+
+  const emailOptions = {
+    from: '"AppSalon Co." <citas@appsalon.com>',
+    to: adminEmail,
+    subject: "📅 AppSalon - Nueva Cita Agendada 📅",
+    text: `Hola Cliente.\n\nSe ha agendado una nueva cita.\n\nFecha: ${date}\nHora: ${time}\n\nSaludos,\nEl equipo de AppSalon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #1E8449;">¡Nueva Cita Agendada!</h2>
+        <p>Hola Cliente,</p>
+        <p>Se ha reservado una nueva cita con los siguientes detalles:</p>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Fecha:</strong> ${date}</li>
+            <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Hora:</strong> ${time}</li>
+        </ul>
+        <p>Recuerda revisar el calendario para prepararte.</p>
+        <hr>
+        <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(emailOptions);
+    console.log(
+      colors.green.italic(
+        `📬 Notificación de Nueva Cita enviada a ${adminEmail}: ${info.messageId}.`
+      )
+    );
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        `☠️  Error al enviar email de nueva cita: ${error.message}`
+      )
+    );
+    throw error;
+  }
+}
+
+export async function sendEmailUpdateAppointment({date, time, totalAmount}) {
+  let mailtrapConfig;
+  try {
+    mailtrapConfig = validateMailtrapConfig();
+  } catch (error) {
+    throw new Error("Mailtrap configuration missing for updated appointment email.");
+  }
+
+  const transporter = createTransport(
+    mailtrapConfig.mailtrapHost,
+    mailtrapConfig.mailtrapPort,
+    mailtrapConfig.mailtrapUser,
+    mailtrapConfig.mailtrapPass
+  );
+
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@appsalon.com";
+
+  const emailOptions = {
+    from: '"AppSalon Co." <citas@appsalon.com>',
+    to: adminEmail,
+    subject: "🔄 AppSalon - Cita Actualizada 🔄",
+    text: `Hola Usuario,\n\nSe ha actualizado una cita.\n\nNueva Fecha: ${date}\nNueva Hora: ${time}\n\nSaludos,\nEl equipo de AppSalon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #2980B9;">¡Una Cita ha sido Actualizada!</h2>
+        <p>Hola Usuario,</p>
+        <p>El cliente ha actualizado su cita. Los nuevos detalles son:</p>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Nueva Fecha:</strong> ${date}</li>
+            <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Nueva Hora:</strong> ${time}</li>
+            <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Nuevo Monto Total: $</strong> ${totalAmount}</li>
+        </ul>
+        <p>Por favor, actualiza tu agenda con esta nueva información.</p>
+        <hr>
+        <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(emailOptions);
+    console.log(
+      colors.blue.italic(
+        `📬 Notificación de Cita Actualizada enviada a ${adminEmail}: ${info.messageId}.`
+      )
+    );
+  } catch (error) {
+    console.error(
+      colors.red.bold(
+        `☠️  Error al enviar email de cita actualizada: ${error.message}`
+      )
+    );
+    throw error;
+  }
+}
+
+export async function sendEmailCancelledAppointment({ user, date, time }) {
+    let mailtrapConfig;
+    try {
+      mailtrapConfig = validateMailtrapConfig();
+    } catch (error) {
+      throw new Error("Mailtrap configuration missing for cancelled appointment email.");
+    }
+  
+    const transporter = createTransport(
+      mailtrapConfig.mailtrapHost,
+      mailtrapConfig.mailtrapPort,
+      mailtrapConfig.mailtrapUser,
+      mailtrapConfig.mailtrapPass
+    );
+  
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@appsalon.com";
+  
+    const emailOptions = {
+      from: '"AppSalon Co." <citas@appsalon.com>',
+      to: adminEmail,
+      subject: "❌ AppSalon - Cita Cancelada ❌",
+      text: `Hola Admin,\n\nSe ha cancelado una cita.\n\nCliente: ${user.name}\nFecha de la cita cancelada: ${date}\nHora de la cita cancelada: ${time}\n\nSaludos,\nEl equipo de AppSalon`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #C0392B;">¡Una Cita ha sido Cancelada!</h2>
+          <p>Hola Admin,</p>
+          <p>El cliente <strong>${user.name}</strong> ha cancelado la siguiente cita:</p>
+          <ul style="list-style-type: none; padding: 0;">
+              <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Fecha:</strong> ${date}</li>
+              <li style="background-color: #f2f2f2; margin: 5px 0; padding: 10px; border-radius: 5px;"><strong>Hora:</strong> ${time}</li>
+          </ul>
+          <p>Este horario ha quedado libre en tu agenda.</p>
+          <hr>
+          <p style="font-size: 0.9em; color: #777;">Atentamente,<br>El Equipo de AppSalon<br><em style="color: #FFC300;">"Donde la belleza y el código se encuentran"</em></p>
+        </div>
+      `,
+    };
+  
+    try {
+      const info = await transporter.sendMail(emailOptions);
+      console.log(
+        colors.yellow.italic(
+          `📬 Notificación de Cita Cancelada enviada a ${adminEmail}: ${info.messageId}.`
+        )
+      );
+    } catch (error) {
+      console.error(
+        colors.red.bold(
+          `☠️  Error al enviar email de cita cancelada: ${error.message}`
+        )
+      );
+      throw error;
+    }
 }
