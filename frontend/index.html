@@ -1,12 +1,45 @@
 <!doctype html>
+
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AppSalon</title>
+    <style>
+      /* 
+        We define the color palette as standard CSS custom properties.
+        This makes them available globally for our new background pattern.
+      */
+      :root {
+        --color-light-mauve: #c5a2cb;
+        --color-deep-plum: #5b3c62;
+        /* Other colors from your theme can be added here if needed */
+      }
+
+      body {
+        /* Set the solid base color using your theme variable */
+        background-color: var(--color-light-mauve);
+
+        /*
+          Create a subtle diagonal line pattern using CSS gradients.
+          - We use `repeating-linear-gradient` at a 45-degree angle.
+          - The lines are created with a very transparent version of your 'deep-plum' color,
+            making the pattern elegant and not distracting.
+          - The pattern consists of a 15px transparent stripe followed by a 2px semi-transparent line.
+        */
+        background-image: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 15px,
+          hsla(289, 23%, 31%, 0.08) 15px, /* This is --color-deep-plum with 8% opacity */
+          hsla(289, 23%, 31%, 0.08) 17px
+        );
+      }
+    </style>
   </head>
-  <body class="bg-light-mauve/75">
+  <!-- The class "bg-light-mauve/75" has been removed as the style is now handled in the <head> -->
+  <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
