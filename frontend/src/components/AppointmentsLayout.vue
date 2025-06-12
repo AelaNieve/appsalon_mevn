@@ -98,6 +98,15 @@ const toggleMenu = () => {
 
       <nav class="flex flex-1 flex-col justify-between">
         <ul class="flex flex-col gap-6 text-center">
+                              <li>
+            <button
+
+              @click="router.push({ name: 'home' })"
+              class="block w-full rounded-full bg-light-mauve px-6 py-3 text-base font-semibold text-deep-plum shadow-md transition hover:bg-muted-grape hover:text-dark-indigo"
+            >
+              Pagina Principal
+            </button>
+          </li>
           <li>
             <RouterLink
               :to="{ name: 'my-appointments' }"

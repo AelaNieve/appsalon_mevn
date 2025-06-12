@@ -65,7 +65,7 @@ export const useUserStore = defineStore('user', () => {
         // Clear the timer when manually logging out
         clearTimeout(logoutTimer)
       }
-      router.push({ name: 'login' }) // Redirect to the login page
+      router.push({ name: 'home' }) // Redirect to the home page
     } catch (error) {
       console.error('Error during logout:', error)
       // Handle any errors during logout (e.g., show a notification)

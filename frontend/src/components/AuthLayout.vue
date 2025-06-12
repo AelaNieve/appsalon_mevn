@@ -17,7 +17,7 @@ const alertStore = useAlertStore()
     class="bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen py-12 px-4 sm:px-6 lg:px-8"
   >
     <div class="mx-auto lg:w-3/5 xl:w-2/5">
-      <RouterLink :to="{ name: 'login' }" class="flex justify-center mb-12">
+      <RouterLink :to="{ name: 'home' }" class="flex justify-center mb-12">
         <h1 class="text-5xl sm:text-6xl font-extrabold text-white text-center tracking-tight">
           AppSalon
         </h1>

@@ -43,10 +43,11 @@ const onSubmit = handleSubmit(async (values) => {
     const { data } = await AuthAPI.login(values)
     await userStore.fetchUser() // <-- fetch and set user data after login
     userStore.startAutoLogoutTimer()
-    await router.push({ name: 'my-appointments' })
-    alertStore.showAlert(data.msg,)
+    alertStore.showAlert(data.msg)
+    router.push({ name: 'home' })
   } catch (error) {
     console.error('Login failed:', error)
+
     let alertMessage = 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.'
 
     if (error.response) {

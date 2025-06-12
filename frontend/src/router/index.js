@@ -46,17 +46,17 @@ const router = createRouter({
           component: () => import('../views/appointments/EditAppointmentLayout.vue'),
           children: [
             {
-                path: '',
-                name: 'edit-appointment',
-                component: () => import('../views/appointments/ServicesView.vue'),
+              path: '',
+              name: 'edit-appointment',
+              component: () => import('../views/appointments/ServicesView.vue'),
             },
             {
-                path: 'detalles',
-                name: 'edit-appointment-details',
-                component: () => import('../views/appointments/AppoinmentView.vue'),
+              path: 'detalles',
+              name: 'edit-appointment-details',
+              component: () => import('../views/appointments/AppoinmentView.vue'),
             },
-          ]
-        }
+          ],
+        },
       ],
     },
     {
@@ -118,18 +118,39 @@ const router = createRouter({
   ],
 })
 
+// --- START OF FIX ---
+// Replaced the old guard with a more robust one.
 router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.matched.some((url) => url.meta.requiresAuth)
-  if (requiresAuth) {
-    try {
-      await AuthAPI.auth()
-      next()
-    } catch (error) {
-      next({ name: 'login' })
-    }
-  } else {
-    next()
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const isAuthRoute = to.matched.some((record) => record.name === 'auth')
+
+  let isAuthenticated = false
+  try {
+    // We check for a valid session on every navigation.
+    await AuthAPI.auth()
+    isAuthenticated = true
+  } catch (error) {
+    isAuthenticated = false
   }
+
+  if (requiresAuth && !isAuthenticated) {
+    // Case 1: Trying to access a protected route without being authenticated.
+    // Redirect to login.
+    return next({ name: 'login' })
+  }
+
+  if (isAuthRoute && isAuthenticated) {
+    // Case 2: Trying to access an auth page (login, register) while already authenticated.
+    // Redirect to the main app view.
+    return next({ name: 'my-appointments' })
+  }
+
+  // Case 3: All other scenarios are allowed.
+  // - Accessing a public route like Home (authenticated or not).
+  // - Accessing a protected route (when authenticated).
+  // - Accessing an auth route (when not authenticated).
+  next()
 })
+// --- END OF FIX ---
 
 export default router
