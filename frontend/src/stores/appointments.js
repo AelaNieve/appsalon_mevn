@@ -55,8 +55,9 @@ export const useAppointmentsStore = defineStore('appointments', () => {
         appointmentsByDate.value = data
       }
       else {
-        console.log('Edición', appointmentId.value)
-      } 
+        appointmentsByDate.value = data.filter( appointment => appointment._id !==  appointmentId.value)
+        time.value = data.filter( appointment => appointment._id ===  appointmentId.value)[0].time
+        } 
     } catch (error) {
       console.error('Error fetching appointments:', error)
       alertStore.showAlert('Error al consultar las citas.', 'error', 3000)
