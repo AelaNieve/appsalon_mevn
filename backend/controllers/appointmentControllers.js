@@ -49,20 +49,20 @@ const getAppointmentById = async (req, res) => {
 
 const updateAppointment = async (req, res) => {
 
-    const { id } = req.params
+    const { id } = req.params
 
     // Validar por object id
-    if(validateObjectId(id, res)) return
+    if(!isValidObjectId(id))
+      return res.status(400).json({ msg: 'El ID proporcionado no es válido. ¿Estás inventando cosas?' }); 
 
     // Validar que exista
     const appointment = await Appointment.findById(id).populate('services')
     if(!appointment) {
-        return handleNotFoundError('La Cita no existe', res)
+        return res.status(404).json({ msg: 'La Cita no existe' })
     }
 
-    if(appointment.user.toString() !== req.user._id.toString()) {
-        const error = new Error('No tienes los permisos')
-        return res.status(403).json({msg: error.message})
+    if (appointment.user.toString() !== req.user._id.toString()) {
+        return res.status(403).json({msg: 'No tienes los permisos'});
     }
 
     const { date, time, totalAmount, services} = req.body

@@ -93,16 +93,27 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       time: time.value,
       totalAmount: totalAmount.value,
     }
-    try {
-      
-      await AppointmentAPI.create(appointment)
-      clearAppointmentData()
-      router.push({ name: 'my-appointments' })
-      alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
-    } catch (error) {
-      console.error('Error creating appointment:', error)
+    if (appointmentId.value) {
+      try {
+        await AppointmentAPI.update(appointmentId.value, appointment) 
+        alertStore.showAlert('Cita actualizada de manera exitosa', 'success', 3000)
+      } catch (error) {
+        console.error('Error actualizando la cita:', error)
+        alertStore.showAlert('No se pudo actualizar la cita', 'error', 3000)
+      }
+    } else {
+      try {
+        await AppointmentAPI.create(appointment)
+
+        alertStore.showAlert('Cita creada de manera exitosa', 'success', 3000)
+      } catch (error) {
+        console.error('Error creating appointment:', error)
+      }
     }
+    clearAppointmentData()
+    router.push({ name: 'my-appointments' })
   }
+
 
   function clearAppointmentData() {
     services.value = []
