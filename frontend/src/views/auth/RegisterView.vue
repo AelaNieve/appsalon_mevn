@@ -82,7 +82,7 @@ const passwordCriteriaErrors = computed(() => {
 // --- IMPROVED ONSUBMIT FUNCTION ---
 const onSubmit = handleSubmit(async (vals) => {
   if (!hcaptchaToken.value) {
-    alertStore.showAlert('Por favor, completa el captcha.', 'error')
+    alertStore.showAlert('Por favor, completa el captcha.', 'info')
     return // Stop form submission if captcha is not verified
   }
 

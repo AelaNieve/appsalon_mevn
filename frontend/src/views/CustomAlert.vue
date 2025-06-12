@@ -32,7 +32,8 @@ const alertConfig = computed(() => {
         title: 'Exito!',
         titleColor: 'text-green-800',
         messageColor: 'text-green-700',
-        iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', // Checkmark circle
+        // Correct path for an outline checkmark circle
+        iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
         animateIcon: true,
       }
     case 'error':
@@ -45,7 +46,8 @@ const alertConfig = computed(() => {
         title: 'Error!',
         titleColor: 'text-red-800',
         messageColor: 'text-red-700',
-        iconPath: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z', // X circle
+        // Correct path for an outline X-circle
+        iconPath: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
         animateIcon: false,
       }
     case 'warning':
@@ -58,8 +60,9 @@ const alertConfig = computed(() => {
         title: 'Advertencia!',
         titleColor: 'text-yellow-800',
         messageColor: 'text-yellow-700',
+        // New path for a SOLID exclamation triangle (from Heroicons)
         iconPath:
-          'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.308 18c-.77 1.333.192 3 1.732 3z', // Exclamation triangle
+          'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
         animateIcon: true,
       }
     case 'info':
@@ -72,7 +75,8 @@ const alertConfig = computed(() => {
         title: 'Informacion',
         titleColor: 'text-blue-800',
         messageColor: 'text-blue-700',
-        iconPath: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', // Info circle
+        // Correct path for an outline info circle
+        iconPath: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
         animateIcon: false,
       }
     case 'default':
@@ -86,11 +90,29 @@ const alertConfig = computed(() => {
         title: 'Notificación',
         titleColor: 'text-deep-plum',
         messageColor: 'text-dark-indigo',
+        // Path for a filled icon
         iconPath:
-          'M20 3.33331C10.8 3.33331 3.33337 10.8 3.33337 20C3.33337 29.2 10.8 36.6666 20 36.6666C29.2 36.6666 36.6667 29.2 36.6667 20C36.6667 10.8 29.2 3.33331 20 3.33331ZM21.6667 28.3333H18.3334V25H21.6667V28.3333ZM21.6667 21.6666H18.3334V11.6666H21.6667V21.6666Z', // Original warning icon
+          'M20 3.33331C10.8 3.33331 3.33337 10.8 3.33337 20C3.33337 29.2 10.8 36.6666 20 36.6666C29.2 36.6666 36.6667 29.2 36.6667 20C36.6667 10.8 29.2 3.33331 20 3.33331ZM21.6667 28.3333H18.3334V25H21.6667V28.3333ZM21.6667 21.6666H18.3334V11.6666H21.6667V21.6666Z',
         animateIcon: true,
       }
   }
+})
+
+// A more robust way to handle dynamic hover/focus classes for Tailwind
+const closeButtonClasses = computed(() => {
+  const colorName = alertConfig.value.iconColor.split('-')[1] // e.g., 'green' from 'text-green-800'
+  const hoverBg = alertConfig.value.iconBg
+
+  // Map color names to their focus ring counterparts
+  const focusRingMap = {
+    green: 'focus:ring-green-400',
+    red: 'focus:ring-red-400',
+    yellow: 'focus:ring-yellow-400',
+    blue: 'focus:ring-blue-400',
+    'deep-plum': 'focus:ring-pastel-lilac', // Custom mapping for default
+  }
+
+  return [`hover:${hoverBg}`, focusRingMap[colorName] || 'focus:ring-gray-400']
 })
 </script>
 
@@ -112,27 +134,41 @@ const alertConfig = computed(() => {
       ]"
     >
       <div :class="['flex items-center justify-center w-16 rounded-l-xl', alertConfig.iconBg]">
+        <!-- ====== FIX STARTS HERE ====== -->
+
+        <!-- SVG for FILLED icons (like your 'default' type) -->
         <svg
-          :class="[
-            'w-8 h-8 fill-current',
-            alertConfig.iconColor,
-            { 'animate-bounce-slow': alertConfig.animateIcon },
-          ]"
-          :viewBox="type === 'default' ? '0 0 40 40' : '0 0 24 24'"
+          v-if="type === 'default'"
+          :class="['w-8 h-8 fill-current', alertConfig.iconColor, { 'animate-bounce-slow': alertConfig.animateIcon }]"
+          viewBox="0 0 40 40"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path :d="alertConfig.iconPath" />
+          <!-- `fill-rule` helps render complex shapes correctly -->
+          <path fill-rule="evenodd" clip-rule="evenodd" :d="alertConfig.iconPath" />
         </svg>
+
+        <!-- SVG for OUTLINE icons (success, error, warning, info) -->
+        <svg
+          v-else
+          :class="['w-8 h-8', alertConfig.iconColor, { 'animate-bounce-slow': alertConfig.animateIcon }]"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" :d="alertConfig.iconPath" />
+        </svg>
+
+        <!-- ====== FIX ENDS HERE ====== -->
       </div>
 
       <div class="flex-1 px-6 py-4">
         <div class="flex items-center justify-between">
           <span
-            :class="[
-              'font-bold text-lg tracking-wide flex items-center gap-2',
-              alertConfig.titleColor,
-            ]"
+            :class="['font-bold text-lg tracking-wide flex items-center gap-2', alertConfig.titleColor]"
           >
+            <!-- This small icon next to the title was already correct -->
             <svg
               v-if="type !== 'default'"
               :class="['w-5 h-5', alertConfig.titleColor]"
@@ -147,16 +183,16 @@ const alertConfig = computed(() => {
           </span>
           <button
             @click="$emit('close', id)"
-            class="ml-4 p-2 rounded-full hover:bg-opacity-70 focus:outline-none focus:ring-2 transition"
             :class="[
-              `hover:${alertConfig.iconBg}`, // Adjust hover background based on iconBg
-              `focus:ring-${alertConfig.iconColor.split('-')[1]}-400`, // Adjust ring color based on iconColor
+              'ml-4 p-2 rounded-full hover:bg-opacity-70 focus:outline-none focus:ring-2 transition',
+              closeButtonClasses,
             ]"
             aria-label="Cerrar"
           >
             <svg
               class="w-4 h-4 text-muted-grape hover:text-deep-plum transition"
               viewBox="0 0 20 20"
+              fill="currentColor"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path

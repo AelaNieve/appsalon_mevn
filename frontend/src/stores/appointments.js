@@ -41,7 +41,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     const dayOfWeek = selectedDateObject.getDay() // 0 for Sunday, 6 for Saturday
 
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-      alertStore.showAlert('No abrimos los fines de semana.', 'error', 4000)
+      alertStore.showAlert('No abrimos los fines de semana.', 'info', 4000)
       date.value = '' // Reset the date
       appointmentsByDate.value = []
       return
@@ -51,7 +51,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     try {
       const { data } = await AppointmentAPI.getByDate(newDate)
       if (!appointmentId.value) {
-        console.log('Nuevas Citas')
+        //console.log('Nuevas Citas')
         appointmentsByDate.value = data
       }
       else {
