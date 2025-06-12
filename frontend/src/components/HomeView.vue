@@ -1,31 +1,47 @@
-<script setup>
-import { onMounted } from 'vue'
-import { useAlertStore } from '@/stores/useAlertStore'
-import CustomAlert from '@/views/CustomAlert.vue'
 
-const alertStore = useAlertStore()
 
-// Define an array of alert configurations to test
-const testAlerts = [
-  { message: 'Alerta de exito!', type: 'success', duration: 4000 },
-  { message: 'Alerta de error!', type: 'error', duration: 5000 },
-  { message: 'Alerta de advertencia!', type: 'warning', duration: 6000 },
-  { message: 'Alerta de información.', type: 'info', duration: 3000 },
-  { message: 'Alerta default.', type: 'default', duration: 3500 },
-];
 
-onMounted(() => {
-  let delay = 0
-  testAlerts.forEach((alert, index) => {
-    // Show alerts sequentially with a delay
-    setTimeout(() => {
-      alertStore.showAlert(alert.message, alert.type, alert.duration)
-    }, delay)
-    // Increase delay for the next alert
-    delay += 1000 // Each alert will appear 1 second after the previous one
-  })
-})
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<script setup>
+//import { onMounted } from 'vue'
+//import { useAlertStore } from '@/stores/useAlertStore'
+//import CustomAlert from '@/views/CustomAlert.vue'
+//
+//const alertStore = useAlertStore()
+//
+//// Define an array of alert configurations to test
+//const testAlerts = [
+//  { message: 'Alerta de exito!', type: 'success', duration: 4000 },
+//  { message: 'Alerta de error!', type: 'error', duration: 5000 },
+//  { message: 'Alerta de advertencia!', type: 'warning', duration: 6000 },
+//  { message: 'Alerta de información.', type: 'info', duration: 3000 },
+//  { message: 'Alerta default.', type: 'default', duration: 3500 },
+//];
+//
+//onMounted(() => {
+//  let delay = 0
+//  testAlerts.forEach((alert, index) => {
+//    // Show alerts sequentially with a delay
+//    setTimeout(() => {
+//      alertStore.showAlert(alert.message, alert.type, alert.duration)
+//    }, delay)
+//    // Increase delay for the next alert
+//    delay += 1000 // Each alert will appear 1 second after the previous one
+//  })
+//})
 </script>
+
 
 <template>
   <div
@@ -56,4 +72,4 @@ onMounted(() => {
   </div>
 </template>
 
-<!---->
+-->
