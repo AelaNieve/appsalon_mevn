@@ -15,18 +15,18 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
     },
-        {
+    {
       path: '/admin',
       name: 'admin',
       component: AdminLayout,
       meta: { requiresAdmin: true },
-            children: [
+      children: [
         {
           path: '',
           name: 'admin-appointments',
           component: () => import('../views/admin/AppointmentsView.vue'),
-        }
-      ]
+        },
+      ],
     },
     {
       path: '/reservaciones',
@@ -131,6 +131,7 @@ const router = createRouter({
     },
   ],
 })
+
 router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
@@ -142,7 +143,7 @@ router.beforeEach(async (to, from, next) => {
       next() // User is an admin, allow access.
     } catch (error) {
       // Failed admin check. The user is either not logged in or not an admin.
-      // We'll redirect to the user's appointments page as a safe fallback.
+      // We'll redirect to the home page as a safe fallback.
       next({ name: 'home' })
     }
   } else if (requiresAuth) {
@@ -164,16 +165,19 @@ router.beforeEach(async (to, from, next) => {
       // User is not authenticated, which is fine for public routes.
     }
 
-    const isAuthRoute = to.matched.some((record) => record.name === 'auth')
-    if (isAuthRoute && isAuthenticated) {
-      // If the user is already logged in, redirect them away from auth pages.
+    // Define routes that should ONLY be accessible to unauthenticated users.
+    const guestOnlyRoutes = ['login', 'register']
+
+    if (guestOnlyRoutes.includes(to.name) && isAuthenticated) {
+      // If the user is already logged in and tries to access a guest-only page,
+      // redirect them to the home page.
       next({ name: 'home' })
     } else {
-      // Otherwise, allow access to the public route.
+      // Otherwise, allow access. This will permit logged-in users to access
+      // pages like 'forgot-password' or 'request-delete-account'.
       next()
     }
   }
 })
-// --- END OF REPLACEMENT ---
 
 export default router
