@@ -6,6 +6,7 @@ import AppointmentAPI from '@/api/AppointmentAPI'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   
+  const appointmentId = ref('') // To store the selected appointment ID
   const services = ref([])
   const date = ref('') // Date for the appointment
   const time = ref('') // Selected time
@@ -49,7 +50,13 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     // Fetch appointments for the selected date from the API
     try {
       const { data } = await AppointmentAPI.getByDate(newDate)
-      appointmentsByDate.value = data
+      if (!appointmentId.value) {
+        console.log('Nuevas Citas')
+        appointmentsByDate.value = data
+      }
+      else {
+        console.log('Edición', appointmentId.value)
+      } 
     } catch (error) {
       console.error('Error fetching appointments:', error)
       alertStore.showAlert('Error al consultar las citas.', 'error', 3000)
@@ -58,11 +65,11 @@ export const useAppointmentsStore = defineStore('appointments', () => {
   })
 
     function setSelectedAppointment(appointment) {
-      console.log('Setting selected appointment:', appointment)
       services.value = appointment.services
       date.value = appointment.date.substring(0, 10)
       time.value = appointment.time
-      //appointmentId.value = appointment._id
+      appointmentId.value = appointment._id
+
   }
   function onServiceSelected(service) {
     if (services.value.some((selectedService) => selectedService._id == service._id)) {
