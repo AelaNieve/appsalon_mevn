@@ -3,7 +3,7 @@ import Appointment from "../models/appointment.js";
 const getUserAppointments = async (req, res) => {
   const { user } = req.params;
 
-  if (user !== req.user._id.toString() && !req.user.admin) {
+  if (user !== req.user._id.toString()) {
     //console.log("Acceso Denegado: User ID mismatch");
     return res.status(400).json({ msg: "Acceso Denegado" });
   }
