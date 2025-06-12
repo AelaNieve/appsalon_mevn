@@ -2,7 +2,7 @@
 import SelectedService from '@/views/appointments/SelectedService.vue'
 import { formatCurrency } from '@/helpers'
 import { useAppointmentsStore } from '@/stores/appointments'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 

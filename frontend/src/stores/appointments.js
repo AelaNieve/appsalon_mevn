@@ -122,6 +122,19 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     appointmentsByDate.value = []
   }
 
+  async function deleteAppointment(id) {
+    try {
+      //console.log('Eliminando cita con ID:', id)
+      await AppointmentAPI.remove(id)
+      alertStore.showAlert('Cita eliminada de manera exitosa', 'success', 3000)
+      clearAppointmentData()
+      router.push({ name: 'my-appointments' })
+    } catch (error) {
+      console.error('Error deleting appointment:', error)
+      alertStore.showAlert('No se pudo eliminar la cita', 'error', 3000)
+    }
+  }
+
   // Check if a time slot is already taken
   function isTimeTaken(hour) {
     return appointmentsByDate.value.some((appointment) => appointment.time === hour)
@@ -165,6 +178,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     isValidReservation,
     isTimeTaken,
     setSelectedAppointment,
-    clearAppointmentData
+    clearAppointmentData,
+    deleteAppointment
   }
 })

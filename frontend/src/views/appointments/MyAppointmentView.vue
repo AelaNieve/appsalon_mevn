@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { formatCurrency } from '../../helpers'
-import { useUserStore } from '../../stores/user'
-import { useAlertStore } from '../../stores/useAlertStore'
-import AppointmentAPI from '@/api/AppointmentAPI'
+import { useAppointmentsStore } from '../../stores/appointments'
+
+const appointmentStore = useAppointmentsStore()
 
 // Props
 const reloadPage = () => {
@@ -17,9 +17,6 @@ const props = defineProps({
   },
 })
 
-// Stores
-const user = useUserStore()
-const alertStore = useAlertStore()
 
 // Computed property for a more readable date format
 const displayDate = computed(() => {
@@ -37,20 +34,18 @@ const displayDate = computed(() => {
  * On success, it shows an alert and refreshes the appointment list.
  */
 
-const handleCancel = async () => {
+const handleCancel = async (id) => {
   if (confirm('¿Estás seguro de que quieres cancelar esta cita?')) {
     try {
-      //await AppointmentAPI.delete(props.appointment._id) // Assumes this API method exists
+      //console.log('Cancelando cita con ID:', id)
+      await appointmentStore.deleteAppointment(id) // Assumes this API method exists
       // Refresh the user's appointments list after cancellation
-      alertStore.showAlert('Cita cancelada correctamente', 'success')
-      await new Promise(resolve => setTimeout(resolve, 5000))
-      reloadPage()
+      //await new Promise(resolve => setTimeout(resolve, 5000))
+      //reloadPage()
       return
     } catch (error) {
-      reloadPage()
+      //reloadPage()
       console.error('Error al cancelar la cita:', error)
-      const errorMessage = error.response?.data?.msg || 'No se pudo cancelar la cita. Inténtalo de nuevo.'
-      alertStore.showAlert(errorMessage, 'error')
     }
   }
 }
@@ -100,24 +95,11 @@ const handleCancel = async () => {
           Editar Cita
         </RouterLink>
         <button
-          @click="handleCancel"
+          @click="handleCancel(appointment._id)"
           class="w-full px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-red-600 text-white hover:bg-red-700"
         >
           Cancelar Cita
         </button>
-      <!--
-
-          class="w-full text-center px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-muted-grape text-white hover:bg-deep-plum"
-        >
-          Editar Cita
-
-        <button
-          @click="handleCancel"
-          class="w-full px-4 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-lg focus:outline-none shadow-md transform hover:scale-105 bg-red-600 text-white hover:bg-red-700"
-        >
-          Cancelar Cita
-        </button>
-      -->
     </div>
   </div>
 </template>

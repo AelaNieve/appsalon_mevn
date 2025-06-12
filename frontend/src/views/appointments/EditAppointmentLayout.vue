@@ -13,6 +13,7 @@
 
     onMounted(async () => {
         try {
+            appointments.clearAppointmentData()
             const { data } = await AppointmentAPI.getById(id)
             console.log('Fetching appointment with ID:', data)
 
