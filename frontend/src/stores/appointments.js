@@ -154,5 +154,6 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     isValidReservation,
     isTimeTaken,
     setSelectedAppointment,
+    clearAppointmentData
   }
 })

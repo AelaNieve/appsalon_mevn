@@ -56,8 +56,11 @@ export const useUserStore = defineStore('user', () => {
 
       user.value = {} // Clear the user data in the store
       userAppointments.value = [] // Clear the user appointments in the store
-      const appointmentsStore = useAppointmentsStore()  // Get the appointments store
-      appointmentsStore.services = []  // Clear the selected services
+
+      // Create an instance of the appointments store and clear its data
+      const appointmentsStore = useAppointmentsStore()
+      appointmentsStore.clearAppointmentData() // Clear the appointments store data
+
       if (logoutTimer) {
         // Clear the timer when manually logging out
         clearTimeout(logoutTimer)
@@ -69,8 +72,10 @@ export const useUserStore = defineStore('user', () => {
       // Even if there's an error on the backend, we clear local state and redirect
       user.value = {}
       userAppointments.value = [] // Clear the user appointments even on error
-      const appointmentsStore = useAppointmentsStore()  // Get the appointments store
-      appointmentsStore.services = []  // Clear the selected services
+
+      const appointmentsStore = useAppointmentsStore()
+      appointmentsStore.clearAppointmentData() // Clear the appointments store data
+
       if (logoutTimer) {
         clearTimeout(logoutTimer)
       }
