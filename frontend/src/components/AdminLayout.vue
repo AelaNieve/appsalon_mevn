@@ -125,6 +125,15 @@ const toggleMenu = () => {
                     </li>
                     <li>
                         <RouterLink
+                            :to="{ name: 'crm-dashboard' }"
+                            @click="toggleMenu"
+                            class="block w-full rounded-full bg-light-mauve px-6 py-3 text-base font-semibold text-deep-plum shadow-md transition hover:bg-muted-grape hover:text-dark-indigo"
+                        >
+                            CRM Dashboard
+                        </RouterLink>
+                    </li>
+                    <li>
+                        <RouterLink
                             :to="{ name: 'my-appointments' }"
                             @click="toggleMenu"
                             class="block w-full rounded-full bg-light-mauve px-6 py-3 text-base font-semibold text-deep-plum shadow-md transition hover:bg-muted-grape hover:text-dark-indigo"

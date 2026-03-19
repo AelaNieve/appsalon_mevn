@@ -5,6 +5,7 @@ import HomeView from '@/components/HomeView.vue'
 import AuthLayout from '@/components/AuthLayout.vue'
 import AppointmentsLayout from '@/components/AppointmentsLayout.vue'
 import AdminLayout from '../components/AdminLayout.vue'
+import CrmLayout from '../components/CrmLayout.vue'
 import AuthAPI from '@/api/AuthAPI'
 
 const router = createRouter({
@@ -25,6 +26,19 @@ const router = createRouter({
           path: '',
           name: 'admin-appointments',
           component: () => import('../views/admin/AppointmentsView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/crm',
+      name: 'crm',
+      component: CrmLayout,
+      meta: { requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          name: 'crm-dashboard',
+          component: () => import('../views/crm/CrmDashboardView.vue'),
         },
       ],
     },
